@@ -1,0 +1,41 @@
+{
+  "key": "live_stage_time_bounds_v1",
+  "displayName": "Live Stage Time Bounds",
+  "description": "Start and end timestamps for a selected live TD stage.",
+  "sql": "SELECT * FROM (SELECT name AS well_name, stage_num_td AS stage_num, stage_start_ts AS start_time, stage_end_ts AS end_time FROM featurestore:live_td_stage_index_v1 WHERE name = :well_name AND stage_num_td = :stage_num LIMIT 1) q",
+  "valueSchema": {
+    "type": "object",
+    "properties": {
+      "well_name": {
+        "type": "string"
+      },
+      "stage_num": {
+        "type": "number"
+      },
+      "start_time": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "end_time": {
+        "type": "string",
+        "format": "date-time"
+      }
+    },
+    "required": []
+  },
+  "paramsSchema": {
+    "type": "object",
+    "properties": {
+      "well_name": {
+        "type": "string"
+      },
+      "stage_num": {
+        "type": "number"
+      }
+    },
+    "required": [
+      "well_name",
+      "stage_num"
+    ]
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "key": "live_fleet_options_v1",
+  "displayName": "Live Fleet Options",
+  "description": "Distinct fleet options from live well index.",
+  "sql": "SELECT * FROM (SELECT DISTINCT COALESCE(NULLIF(fleet_name, ''), 'Unknown') AS label, COALESCE(NULLIF(fleet_name, ''), 'Unknown') AS value FROM featurestore:live_well_index_v1 ORDER BY label) q",
+  "valueSchema": {
+    "type": "object",
+    "properties": {
+      "label": {
+        "type": "string"
+      },
+      "value": {
+        "type": "string"
+      }
+    },
+    "required": []
+  },
+  "paramsSchema": {
+    "type": "object",
+    "properties": {},
+    "required": []
+  }
+}

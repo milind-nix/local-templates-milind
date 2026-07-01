@@ -1,0 +1,42 @@
+{
+  "key": "nextier_live_stage_processing",
+  "displayName": "Nextier Live Stage Processing",
+  "description": "Incrementally derives TD stage windows from live fleet stream telemetry.",
+  "runtime": "prefect",
+  "flow": {
+    "entrypoint": "scripts/workflows/nextier_live_stage_processing/main.py:nextier_live_stage_processing_flow",
+    "include": ["scripts/workflows/nextier_live_stage_processing/**/*.py"],
+    "tags": ["nextier", "live-stage-processing"]
+  },
+  "deployment": {
+    "workPool": "default",
+    "timezone": "UTC",
+    "cron": "*/3 * * * *",
+    "concurrencyLimit": 1,
+    "parameters": {
+      "batch_limit": 200000,
+      "td_gap_seconds": 3600
+    }
+  },
+  "paramsSchema": {
+    "type": "object",
+    "properties": {
+      "batch_limit": {
+        "type": "integer",
+        "default": 100000,
+        "minimum": 1,
+        "maximum": 1000000
+      },
+      "td_gap_seconds": {
+        "type": "integer",
+        "default": 3600,
+        "minimum": 1
+      }
+    },
+    "required": []
+  },
+  "initialState": {
+    "__checkpoint__live_stage_created_ts": null,
+    "td_stage_state_by_well": {}
+  }
+}

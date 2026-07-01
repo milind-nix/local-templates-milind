@@ -1,0 +1,83 @@
+{
+  "key": "merged_td_stage_index_v1",
+  "displayName": "Merged TD Stage Index",
+  "description": "Sandbox TD stage windows recomputed from merged raw telemetry.",
+  "sql": "SELECT name, CAST(NULL AS DOUBLE PRECISION) AS stage_num_td, fleet_name, pad_name, id AS well_id, api_num, CAST(NULL AS TEXT) AS stage_start_ts, CAST(NULL AS TEXT) AS stage_end_ts, CAST(NULL AS TEXT) AS first_created_ts, CAST(NULL AS TEXT) AS last_created_ts, CAST(NULL AS DOUBLE PRECISION) AS sample_count, CAST(NULL AS DOUBLE PRECISION) AS avg_rate_slurry, CAST(NULL AS DOUBLE PRECISION) AS max_rate_slurry, CAST(NULL AS DOUBLE PRECISION) AS avg_press_mainline, CAST(NULL AS DOUBLE PRECISION) AS max_press_mainline, CAST(NULL AS DOUBLE PRECISION) AS avg_prop_conc_blend_denso, CAST(NULL AS DOUBLE PRECISION) AS max_prop_conc_blend_denso, CAST(NULL AS TEXT) AS stage_detection_method FROM datastore:merged_fleet_stream_customer_full_v2 WHERE 1 = 0",
+  "checkpoint_fields": [],
+  "upsert": true,
+  "dataSchema": {
+    "type": "object",
+    "properties": {
+      "name": {
+        "type": "string",
+        "metadata": {
+          "isPrimaryKey": true
+        }
+      },
+      "stage_num_td": {
+        "type": "number",
+        "metadata": {
+          "isPrimaryKey": true
+        }
+      },
+      "fleet_name": {
+        "type": "string"
+      },
+      "pad_name": {
+        "type": "string"
+      },
+      "well_id": {
+        "type": "string"
+      },
+      "api_num": {
+        "type": "string"
+      },
+      "stage_start_ts": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "stage_end_ts": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "first_created_ts": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "last_created_ts": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "sample_count": {
+        "type": "number"
+      },
+      "avg_rate_slurry": {
+        "type": "number"
+      },
+      "max_rate_slurry": {
+        "type": "number"
+      },
+      "avg_press_mainline": {
+        "type": "number"
+      },
+      "max_press_mainline": {
+        "type": "number"
+      },
+      "avg_prop_conc_blend_denso": {
+        "type": "number"
+      },
+      "max_prop_conc_blend_denso": {
+        "type": "number"
+      },
+      "stage_detection_method": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "name",
+      "stage_num_td",
+      "stage_start_ts",
+      "stage_end_ts"
+    ]
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "key": "merged_well_options_v1",
+  "displayName": "Merged Well Options",
+  "description": "Merged well options for the selected fleet and pad.",
+  "sql": "SELECT * FROM ( SELECT name AS label, name AS value, well_family, fleet_name, pad_name, fleet_name AS fleet_name_option, pad_name AS pad_name_option, well_id, api_num, stage_count * 300 AS sample_count, CAST(to_timestamp(EXTRACT(EPOCH FROM CAST('2024-06-01 08:00:00' AS TIMESTAMP)) + (0)) AS TIMESTAMP) AS first_record_ts, CAST(to_timestamp(EXTRACT(EPOCH FROM CAST('2024-06-01 08:00:00' AS TIMESTAMP)) + ((stage_count - 1) * 1800 + 1200)) AS TIMESTAMP) AS last_record_ts FROM (VALUES ('Alpha 1H','Alpha 1','Fleet Alpha','Pad A-1',101,'42-001-0001',6), ('Alpha 2H','Alpha 2','Fleet Alpha','Pad A-1',102,'42-001-0002',6), ('Alpha 3H','Alpha 3','Fleet Alpha','Pad A-2',103,'42-001-0003',5), ('Bravo 1H','Bravo 1','Fleet Bravo','Pad B-1',201,'42-002-0001',6), ('Bravo 2H','Bravo 2','Fleet Bravo','Pad B-1',202,'42-002-0002',4)) AS w(name, well_family, fleet_name, pad_name, well_id, api_num, stage_count) WHERE fleet_name = :fleet_name AND pad_name = :pad_name ORDER BY name ) q",
+  "valueSchema": {
+    "type": "object",
+    "properties": {
+      "label": {
+        "type": "string"
+      },
+      "value": {
+        "type": "string"
+      },
+      "well_family": {
+        "type": "string"
+      },
+      "fleet_name": {
+        "type": "string"
+      },
+      "pad_name": {
+        "type": "string"
+      },
+      "well_id": {
+        "type": "string"
+      },
+      "api_num": {
+        "type": "string"
+      },
+      "sample_count": {
+        "type": "number"
+      },
+      "first_record_ts": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "last_record_ts": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "fleet_name_option": {
+        "type": "string"
+      },
+      "pad_name_option": {
+        "type": "string"
+      }
+    },
+    "required": []
+  },
+  "paramsSchema": {
+    "type": "object",
+    "properties": {
+      "fleet_name": {
+        "type": "string"
+      },
+      "pad_name": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "fleet_name",
+      "pad_name"
+    ]
+  }
+}

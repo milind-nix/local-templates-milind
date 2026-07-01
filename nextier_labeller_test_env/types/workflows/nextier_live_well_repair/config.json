@@ -1,0 +1,37 @@
+{
+  "key": "nextier_live_well_repair",
+  "displayName": "Nextier Live Well Repair",
+  "description": "Manually rebuilds TD stage windows and Bronze/Platinum/Gold labels for one live well after generated rows have been deleted.",
+  "runtime": "prefect",
+  "flow": {
+    "entrypoint": "scripts/workflows/nextier_live_well_repair/main.py:nextier_live_well_repair_flow",
+    "include": [
+      "scripts/workflows/nextier_live_well_repair/**/*.py",
+      "scripts/workflows/nextier_live_stage_processing/**/*.py"
+    ],
+    "tags": ["nextier", "live-stage-repair"]
+  },
+  "deployment": {
+    "workPool": "default",
+    "timezone": "UTC",
+    "concurrencyLimit": 1,
+    "parameters": {
+      "td_gap_seconds": 3600
+    }
+  },
+  "paramsSchema": {
+    "type": "object",
+    "properties": {
+      "well_name": {
+        "type": "string"
+      },
+      "td_gap_seconds": {
+        "type": "integer",
+        "default": 3600,
+        "minimum": 1
+      }
+    },
+    "required": ["well_name"]
+  },
+  "initialState": {}
+}

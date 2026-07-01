@@ -1,0 +1,32 @@
+{
+  "key": "live_pad_options_v1",
+  "displayName": "Live Pad Options",
+  "description": "Distinct pad options from live well index for the selected fleet.",
+  "sql": "SELECT * FROM (SELECT DISTINCT COALESCE(NULLIF(pad_name, ''), 'Unknown') AS label, COALESCE(NULLIF(pad_name, ''), 'Unknown') AS value, COALESCE(NULLIF(fleet_name, ''), 'Unknown') AS fleet_name FROM featurestore:live_well_index_v1 WHERE COALESCE(NULLIF(fleet_name, ''), 'Unknown') = :fleet_name ORDER BY label) q",
+  "valueSchema": {
+    "type": "object",
+    "properties": {
+      "label": {
+        "type": "string"
+      },
+      "value": {
+        "type": "string"
+      },
+      "fleet_name": {
+        "type": "string"
+      }
+    },
+    "required": []
+  },
+  "paramsSchema": {
+    "type": "object",
+    "properties": {
+      "fleet_name": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "fleet_name"
+    ]
+  }
+}

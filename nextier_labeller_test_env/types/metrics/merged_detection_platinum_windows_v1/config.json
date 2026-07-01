@@ -1,0 +1,44 @@
+{
+  "key": "merged_detection_platinum_windows_v1",
+  "displayName": "Merged Detection Platinum Windows",
+  "description": "Contiguous Platinum substage windows for a selected well and TD stage.",
+  "sql": "SELECT * FROM ( WITH win AS ( SELECT EXTRACT(EPOCH FROM CAST(to_timestamp(EXTRACT(EPOCH FROM CAST('2024-06-01 08:00:00' AS TIMESTAMP)) + (((:stage_num) - 1) * 1800)) AS TIMESTAMP)) AS s0, EXTRACT(EPOCH FROM CAST(to_timestamp(EXTRACT(EPOCH FROM CAST('2024-06-01 08:00:00' AS TIMESTAMP)) + (((:stage_num) - 1) * 1800 + 1200)) AS TIMESTAMP)) AS s1 ), segs AS ( SELECT 'stage_start' AS substage_label, 0.0 AS fa, 0.12 AS fb, '#1A008B' AS color UNION ALL SELECT 'ramp_up' AS substage_label, 0.12 AS fa, 0.3 AS fb, '#FF1892' AS color UNION ALL SELECT 'slurry' AS substage_label, 0.3 AS fa, 0.72 AS fb, '#01FF81' AS color UNION ALL SELECT 'ramp_down' AS substage_label, 0.72 AS fa, 0.88 AS fb, '#FEA804' AS color UNION ALL SELECT 'shut_off' AS substage_label, 0.88 AS fa, 1.0 AS fb, '#830080' AS color ) SELECT s.substage_label, CAST(to_timestamp(w.s0 + s.fa * (w.s1 - w.s0)) AS TIMESTAMP) AS start_ts, CAST(to_timestamp(w.s0 + s.fb * (w.s1 - w.s0)) AS TIMESTAMP) AS end_ts, s.color, CAST((s.fb - s.fa) * 200 AS INTEGER) AS sample_count FROM win w CROSS JOIN segs s ) q",
+  "valueSchema": {
+    "type": "object",
+    "properties": {
+      "substage_label": {
+        "type": "string"
+      },
+      "start_ts": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "end_ts": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "color": {
+        "type": "string"
+      },
+      "sample_count": {
+        "type": "number"
+      }
+    },
+    "required": []
+  },
+  "paramsSchema": {
+    "type": "object",
+    "properties": {
+      "well_name": {
+        "type": "string"
+      },
+      "stage_num": {
+        "type": "number"
+      }
+    },
+    "required": [
+      "well_name",
+      "stage_num"
+    ]
+  }
+}

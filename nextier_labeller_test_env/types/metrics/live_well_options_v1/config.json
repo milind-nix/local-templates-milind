@@ -1,0 +1,65 @@
+{
+  "key": "live_well_options_v1",
+  "displayName": "Live Well Options",
+  "description": "Live well options for the selected fleet and pad.",
+  "sql": "SELECT * FROM (SELECT name AS label, name AS value, well_family, fleet_name, pad_name, COALESCE(NULLIF(fleet_name, ''), 'Unknown') AS fleet_name_option, COALESCE(NULLIF(pad_name, ''), 'Unknown') AS pad_name_option, well_id, api_num, sample_count, first_record_ts, last_record_ts FROM featurestore:live_well_index_v1 WHERE COALESCE(NULLIF(fleet_name, ''), 'Unknown') = :fleet_name AND COALESCE(NULLIF(pad_name, ''), 'Unknown') = :pad_name ORDER BY name) q",
+  "valueSchema": {
+    "type": "object",
+    "properties": {
+      "label": {
+        "type": "string"
+      },
+      "value": {
+        "type": "string"
+      },
+      "well_family": {
+        "type": "string"
+      },
+      "fleet_name": {
+        "type": "string"
+      },
+      "pad_name": {
+        "type": "string"
+      },
+      "well_id": {
+        "type": "string"
+      },
+      "api_num": {
+        "type": "string"
+      },
+      "sample_count": {
+        "type": "number"
+      },
+      "first_record_ts": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "last_record_ts": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "fleet_name_option": {
+        "type": "string"
+      },
+      "pad_name_option": {
+        "type": "string"
+      }
+    },
+    "required": []
+  },
+  "paramsSchema": {
+    "type": "object",
+    "properties": {
+      "fleet_name": {
+        "type": "string"
+      },
+      "pad_name": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "fleet_name",
+      "pad_name"
+    ]
+  }
+}

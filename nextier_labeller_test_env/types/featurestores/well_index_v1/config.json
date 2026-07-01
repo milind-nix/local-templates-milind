@@ -1,0 +1,67 @@
+{
+  "key": "well_index_v1",
+  "displayName": "Well Index",
+  "description": "Derived well and family index for labeller selectors.",
+  "sql": "WITH base AS (SELECT site, frac_id, source_file, name, stage_num, created_ts, datetime_fmt, regexp_split_to_array(trim(name), '\\s+') AS name_parts FROM datastore:historian_telemetry_v1 WHERE name IS NOT NULL AND datetime_fmt IS NOT NULL) SELECT site, frac_id, source_file, name, CASE WHEN cardinality(name_parts) = 0 THEN 'Unknown' WHEN cardinality(name_parts) = 1 THEN name_parts[1] WHEN cardinality(name_parts) = 2 THEN name_parts[1] || ' ' || name_parts[2] WHEN name_parts[3] ~ '^[0-9]+$' THEN name_parts[1] || ' ' || name_parts[2] || ' ' || name_parts[3] ELSE name_parts[1] || ' ' || name_parts[2] END AS well_family, COUNT(*) AS sample_count, COUNT(DISTINCT stage_num) AS stage_count, MIN(stage_num) AS min_stage_num, MAX(stage_num) AS max_stage_num, CAST(MIN(datetime_fmt) AS TEXT) AS first_ts, CAST(MAX(datetime_fmt) AS TEXT) AS last_ts, CAST(MIN(created_ts) AS TEXT) AS first_created_ts, CAST(MAX(created_ts) AS TEXT) AS last_created_ts FROM base GROUP BY site, frac_id, source_file, name, well_family ORDER BY well_family ASC, name ASC",
+  "checkpoint_fields": [],
+  "upsert": true,
+  "dataSchema": {
+    "type": "object",
+    "properties": {
+      "site": {
+        "type": "string"
+      },
+      "frac_id": {
+        "type": "number",
+        "metadata": {
+          "isPrimaryKey": true
+        }
+      },
+      "source_file": {
+        "type": "string"
+      },
+      "name": {
+        "type": "string",
+        "metadata": {
+          "isPrimaryKey": true
+        }
+      },
+      "well_family": {
+        "type": "string"
+      },
+      "sample_count": {
+        "type": "number"
+      },
+      "stage_count": {
+        "type": "number"
+      },
+      "min_stage_num": {
+        "type": "number"
+      },
+      "max_stage_num": {
+        "type": "number"
+      },
+      "first_ts": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "last_ts": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "first_created_ts": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "last_created_ts": {
+        "type": "string",
+        "format": "date-time"
+      }
+    },
+    "required": [
+      "frac_id",
+      "name",
+      "well_family"
+    ]
+  }
+}

@@ -1,0 +1,64 @@
+{
+  "key": "historian_telemetry_v1",
+  "displayName": "Historian Telemetry",
+  "description": "Raw historian telemetry rows used as the bronze source for the labeller featurestores.",
+  "dataSchema": {
+    "type": "object",
+    "properties": {
+      "site": {
+        "type": "string"
+      },
+      "frac_id": {
+        "type": "number",
+        "metadata": {
+          "isPrimaryKey": true
+        }
+      },
+      "source_file": {
+        "type": "string"
+      },
+      "created_ts": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "datetime_fmt": {
+        "type": "string",
+        "format": "date-time",
+        "metadata": {
+          "isPrimaryKey": true
+        }
+      },
+      "name": {
+        "type": "string",
+        "metadata": {
+          "isPrimaryKey": true
+        }
+      },
+      "stage_num": {
+        "type": "number"
+      },
+      "rate_slurry": {
+        "type": "number"
+      },
+      "press_mainline": {
+        "type": "number"
+      },
+      "prop_conc_blend_denso": {
+        "type": "number"
+      },
+      "records_in_bucket": {
+        "type": "number"
+      },
+      "ingested_ts": {
+        "type": "string",
+        "format": "date-time"
+      }
+    },
+    "required": [
+      "frac_id",
+      "name",
+      "datetime_fmt",
+      "created_ts"
+    ]
+  }
+}

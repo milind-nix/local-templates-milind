@@ -1,0 +1,34 @@
+{
+  "key": "well_time_bounds_v1",
+  "displayName": "Well Time Bounds",
+  "description": "Start and end timestamps for a selected well across all stages.",
+  "sql": "SELECT * FROM (SELECT name AS well_name, first_ts AS start_time, last_ts AS end_time FROM featurestore:well_index_v1 WHERE name = :well_name LIMIT 1) q",
+  "valueSchema": {
+    "type": "object",
+    "properties": {
+      "well_name": {
+        "type": "string"
+      },
+      "start_time": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "end_time": {
+        "type": "string",
+        "format": "date-time"
+      }
+    },
+    "required": []
+  },
+  "paramsSchema": {
+    "type": "object",
+    "properties": {
+      "well_name": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "well_name"
+    ]
+  }
+}

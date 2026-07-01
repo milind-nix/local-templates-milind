@@ -1,0 +1,81 @@
+{
+  "key": "substage_label_layers_v3",
+  "displayName": "Substage Label Layers",
+  "description": "Well-scoped annotation layers with owner, source, and editability metadata.",
+  "dataSchema": {
+    "type": "object",
+    "properties": {
+      "layer_id": {
+        "type": "string",
+        "metadata": {
+          "isPrimaryKey": true
+        }
+      },
+      "frac_id": {
+        "type": "number"
+      },
+      "site": {
+        "type": "string"
+      },
+      "name": {
+        "type": "string"
+      },
+      "rule_concept_id": {
+        "type": "string"
+      },
+      "labeler_id": {
+        "type": "string"
+      },
+      "layer_name": {
+        "type": "string"
+      },
+      "owner_email": {
+        "type": "string"
+      },
+      "created_by_email": {
+        "type": "string"
+      },
+      "updated_by_email": {
+        "type": "string"
+      },
+      "source_type": {
+        "type": "string"
+      },
+      "is_editable": {
+        "type": "boolean"
+      },
+      "display_order": {
+        "type": "number"
+      },
+      "is_visible_default": {
+        "type": "boolean"
+      },
+      "status": {
+        "type": "string"
+      },
+      "created_at": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "updated_at": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "deleted_at": {
+        "type": "string",
+        "format": "date-time"
+      }
+    },
+    "required": [
+      "layer_id",
+      "name",
+      "layer_name",
+      "rule_concept_id",
+      "labeler_id",
+      "source_type",
+      "is_editable",
+      "status",
+      "created_at"
+    ]
+  }
+}

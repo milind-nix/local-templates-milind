@@ -1,0 +1,31 @@
+{
+  "key": "nextier_workflow_smoke_test",
+  "displayName": "Nextier Workflow Smoke Test 2",
+  "description": "Minimal Prefect workflow used to verify workflow deployment and triggering in the Nextier test environment.",
+  "runtime": "prefect",
+  "flow": {
+    "entrypoint": "scripts/workflows/nextier_workflow_smoke_test/main.py:nextier_workflow_smoke_test_flow",
+    "include": ["scripts/workflows/nextier_workflow_smoke_test/**/*.py"],
+    "tags": ["nextier", "smoke-test"]
+  },
+  "deployment": {
+    "workPool": "default",
+    "timezone": "UTC",
+    "parameters": {
+      "message": "nextier-test workflow smoke test"
+    }
+  },
+  "paramsSchema": {
+    "type": "object",
+    "properties": {
+      "message": {
+        "type": "string",
+        "default": "nextier-test workflow smoke test"
+      }
+    },
+    "required": []
+  },
+  "initialState": {
+    "last_smoke_test_run_at": null
+  }
+}

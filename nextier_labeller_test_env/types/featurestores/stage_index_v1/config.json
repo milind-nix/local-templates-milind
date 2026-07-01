@@ -1,0 +1,84 @@
+{
+  "key": "stage_index_v1",
+  "displayName": "Stage Index",
+  "description": "Derived stage windows and counts for labeller stage selection.",
+  "sql": "WITH base AS (SELECT site, frac_id, source_file, name, stage_num, created_ts, datetime_fmt, rate_slurry, prop_conc_blend_denso, press_mainline, records_in_bucket FROM datastore:historian_telemetry_v1 WHERE name IS NOT NULL AND stage_num IS NOT NULL AND datetime_fmt IS NOT NULL) SELECT site, frac_id, source_file, name, stage_num, CAST(MIN(datetime_fmt) AS TEXT) AS stage_start_ts, CAST(MAX(datetime_fmt) AS TEXT) AS stage_end_ts, CAST(MIN(created_ts) AS TEXT) AS first_created_ts, CAST(MAX(created_ts) AS TEXT) AS last_created_ts, COUNT(*) AS sample_count, SUM(records_in_bucket) AS source_record_count, AVG(rate_slurry) AS avg_rate_slurry, MAX(rate_slurry) AS max_rate_slurry, AVG(press_mainline) AS avg_press_mainline, MAX(press_mainline) AS max_press_mainline, AVG(prop_conc_blend_denso) AS avg_prop_conc_blend_denso, MAX(prop_conc_blend_denso) AS max_prop_conc_blend_denso FROM base GROUP BY site, frac_id, source_file, name, stage_num ORDER BY name ASC, stage_num ASC",
+  "checkpoint_fields": [],
+  "upsert": true,
+  "dataSchema": {
+    "type": "object",
+    "properties": {
+      "site": {
+        "type": "string"
+      },
+      "frac_id": {
+        "type": "number",
+        "metadata": {
+          "isPrimaryKey": true
+        }
+      },
+      "source_file": {
+        "type": "string"
+      },
+      "name": {
+        "type": "string",
+        "metadata": {
+          "isPrimaryKey": true
+        }
+      },
+      "stage_num": {
+        "type": "number",
+        "metadata": {
+          "isPrimaryKey": true
+        }
+      },
+      "stage_start_ts": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "stage_end_ts": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "first_created_ts": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "last_created_ts": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "sample_count": {
+        "type": "number"
+      },
+      "source_record_count": {
+        "type": "number"
+      },
+      "avg_rate_slurry": {
+        "type": "number"
+      },
+      "max_rate_slurry": {
+        "type": "number"
+      },
+      "avg_press_mainline": {
+        "type": "number"
+      },
+      "max_press_mainline": {
+        "type": "number"
+      },
+      "avg_prop_conc_blend_denso": {
+        "type": "number"
+      },
+      "max_prop_conc_blend_denso": {
+        "type": "number"
+      }
+    },
+    "required": [
+      "frac_id",
+      "name",
+      "stage_num",
+      "stage_start_ts",
+      "stage_end_ts"
+    ]
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "key": "merged_layer_edit_permission_check_v1",
+  "displayName": "Merged Layer Edit Permission Check",
+  "description": "Merged dashboard copy of layer_edit_permission_check_v1.",
+  "sql": "SELECT * FROM (SELECT CASE WHEN :layer_id = 'manual:shared' THEN 1 WHEN :layer_id = 'manual:user:' || md5(CAST(:current_user_email AS TEXT)) THEN 1 ELSE 0 END AS can_edit) q",
+  "valueSchema": {
+    "type": "object",
+    "properties": {
+      "can_edit": {
+        "type": "number"
+      }
+    },
+    "required": []
+  },
+  "paramsSchema": {
+    "type": "object",
+    "properties": {
+      "layer_id": {
+        "type": "string"
+      },
+      "current_user_email": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "layer_id",
+      "current_user_email"
+    ]
+  }
+}

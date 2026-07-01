@@ -1,0 +1,60 @@
+{
+  "key": "merged_well_index_v1",
+  "displayName": "Merged Well Index",
+  "description": "Sandbox well index derived from merged live + POC raw telemetry.",
+  "sql": "WITH base AS (SELECT name, fleet_name, pad_name, id, api_num, CAST(NULLIF(CAST(created_ts AS TEXT), '') AS TIMESTAMP) AS created_ts, CAST(NULLIF(CAST(record_ts AS TEXT), '') AS TIMESTAMP) AS record_ts, regexp_split_to_array(trim(name), '\\s+') AS name_parts FROM datastore:merged_fleet_stream_customer_full_v2 WHERE name IS NOT NULL AND record_ts IS NOT NULL), indexed AS (SELECT name, fleet_name, pad_name, id, api_num, created_ts, record_ts, CASE WHEN pad_name IS NOT NULL AND trim(pad_name) <> '' THEN pad_name WHEN cardinality(name_parts) = 0 THEN 'Unknown' WHEN cardinality(name_parts) = 1 THEN name_parts[1] WHEN cardinality(name_parts) = 2 THEN name_parts[1] || ' ' || name_parts[2] WHEN name_parts[3] ~ '^[0-9]+$' THEN name_parts[1] || ' ' || name_parts[2] || ' ' || name_parts[3] ELSE name_parts[1] || ' ' || name_parts[2] END AS well_family FROM base WHERE record_ts IS NOT NULL) SELECT name, well_family, MAX(fleet_name) AS fleet_name, MAX(pad_name) AS pad_name, MAX(id) AS well_id, MAX(api_num) AS api_num, TO_CHAR(MIN(record_ts), 'YYYY-MM-DD HH24:MI:SS.US') AS first_record_ts, TO_CHAR(MAX(record_ts), 'YYYY-MM-DD HH24:MI:SS.US') AS last_record_ts, TO_CHAR(COALESCE(MIN(created_ts), MIN(record_ts)), 'YYYY-MM-DD HH24:MI:SS.US') AS first_created_ts, TO_CHAR(COALESCE(MAX(created_ts), MAX(record_ts)), 'YYYY-MM-DD HH24:MI:SS.US') AS last_created_ts, COUNT(*) AS sample_count FROM indexed GROUP BY name, well_family ORDER BY well_family ASC, name ASC",
+  "checkpoint_fields": [],
+  "upsert": true,
+  "dataSchema": {
+    "type": "object",
+    "properties": {
+      "name": {
+        "type": "string",
+        "metadata": {
+          "isPrimaryKey": true
+        }
+      },
+      "well_family": {
+        "type": "string",
+        "metadata": {
+          "isPrimaryKey": true
+        }
+      },
+      "fleet_name": {
+        "type": "string"
+      },
+      "pad_name": {
+        "type": "string"
+      },
+      "well_id": {
+        "type": "string"
+      },
+      "api_num": {
+        "type": "string"
+      },
+      "first_record_ts": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "last_record_ts": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "first_created_ts": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "last_created_ts": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "sample_count": {
+        "type": "number"
+      }
+    },
+    "required": [
+      "name",
+      "well_family"
+    ]
+  }
+}

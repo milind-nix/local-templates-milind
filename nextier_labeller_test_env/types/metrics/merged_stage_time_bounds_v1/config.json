@@ -1,0 +1,41 @@
+{
+  "key": "merged_stage_time_bounds_v1",
+  "displayName": "Merged Stage Time Bounds",
+  "description": "Start and end timestamps for a selected live TD stage.",
+  "sql": "SELECT * FROM ( SELECT :well_name AS well_name, :stage_num AS stage_num, CAST(to_timestamp(EXTRACT(EPOCH FROM CAST('2024-06-01 08:00:00' AS TIMESTAMP)) + (((:stage_num) - 1) * 1800)) AS TIMESTAMP) AS start_time, CAST(to_timestamp(EXTRACT(EPOCH FROM CAST('2024-06-01 08:00:00' AS TIMESTAMP)) + (((:stage_num) - 1) * 1800 + 1200)) AS TIMESTAMP) AS end_time ) q",
+  "valueSchema": {
+    "type": "object",
+    "properties": {
+      "well_name": {
+        "type": "string"
+      },
+      "stage_num": {
+        "type": "number"
+      },
+      "start_time": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "end_time": {
+        "type": "string",
+        "format": "date-time"
+      }
+    },
+    "required": []
+  },
+  "paramsSchema": {
+    "type": "object",
+    "properties": {
+      "well_name": {
+        "type": "string"
+      },
+      "stage_num": {
+        "type": "number"
+      }
+    },
+    "required": [
+      "well_name",
+      "stage_num"
+    ]
+  }
+}

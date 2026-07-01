@@ -1,0 +1,66 @@
+{
+  "key": "live_detection_gold_timeseries_v1",
+  "displayName": "Live Detection Gold Timeseries",
+  "description": "Selected-stage Gold labels joined to raw telemetry for the Nix Substage Detection dashboard.",
+  "sql": "SELECT * FROM (WITH stage_window AS (SELECT name, stage_num_td, CAST(stage_start_ts AS timestamp) AS stage_start_ts, CAST(stage_end_ts AS timestamp) AS stage_end_ts FROM featurestore:live_td_stage_index_v1 WHERE name = :well_name AND stage_num_td = :stage_num LIMIT 1), gold AS (SELECT name, stage_num_td, CAST(datetime_fmt AS timestamp) AS label_ts, substage FROM featurestore:live_gold_labels_v1 WHERE name = :well_name AND stage_num_td = :stage_num) SELECT t.name AS well_name, s.stage_num_td AS stage_num, t.record_ts AS ts, NULLIF(g.substage, 'NA') AS substage_label, t.rate_slurry, t.press_mainline, CASE WHEN :concentration_feature = 'inline' THEN t.prop_conc_inline WHEN :concentration_feature = 'target' THEN t.prop_conc_target WHEN :concentration_feature = 'auger' THEN t.prop_conc_blend_auger ELSE t.prop_conc_blend_denso END AS selected_concentration, CAST(NULL AS DOUBLE PRECISION) AS inferred_pressure, CAST(NULL AS DOUBLE PRECISION) AS design_rate, CAST(NULL AS DOUBLE PRECISION) AS design_rate_high, CAST(NULL AS DOUBLE PRECISION) AS design_rate_rampdown FROM stage_window s JOIN datastore:live_fleet_stream_customer_full_v1 t ON t.name = s.name AND t.record_ts >= s.stage_start_ts AND t.record_ts <= s.stage_end_ts LEFT JOIN gold g ON g.name = t.name AND g.stage_num_td = s.stage_num_td AND g.label_ts = t.record_ts ORDER BY t.record_ts) q",
+  "valueSchema": {
+    "type": "object",
+    "properties": {
+      "ts": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "well_name": {
+        "type": "string"
+      },
+      "stage_num": {
+        "type": "number"
+      },
+      "substage_label": {
+        "type": "string"
+      },
+      "rate_slurry": {
+        "type": "number"
+      },
+      "press_mainline": {
+        "type": "number"
+      },
+      "selected_concentration": {
+        "type": "number"
+      },
+      "inferred_pressure": {
+        "type": "number"
+      },
+      "design_rate": {
+        "type": "number"
+      },
+      "design_rate_high": {
+        "type": "number"
+      },
+      "design_rate_rampdown": {
+        "type": "number"
+      }
+    },
+    "required": []
+  },
+  "paramsSchema": {
+    "type": "object",
+    "properties": {
+      "well_name": {
+        "type": "string"
+      },
+      "stage_num": {
+        "type": "number"
+      },
+      "concentration_feature": {
+        "type": "string",
+        "default": "denso"
+      }
+    },
+    "required": [
+      "well_name",
+      "stage_num",
+      "concentration_feature"
+    ]
+  }
+}

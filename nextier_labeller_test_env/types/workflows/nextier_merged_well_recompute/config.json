@@ -1,0 +1,60 @@
+{
+  "key": "nextier_merged_well_recompute",
+  "displayName": "Nextier Merged Well Recompute",
+  "description": "Fully recomputes sandbox merged well index, TD stages, and Bronze/Platinum/Gold labels for selected wells from merged raw telemetry.",
+  "runtime": "prefect",
+  "flow": {
+    "entrypoint": "scripts/workflows/nextier_merged_well_recompute/main.py:nextier_merged_well_recompute_flow",
+    "include": [
+      "scripts/workflows/nextier_merged_well_recompute/**/*.py",
+      "scripts/workflows/nextier_live_stage_processing/**/*.py"
+    ],
+    "tags": ["nextier", "merged-labeller", "well-recompute"]
+  },
+  "deployment": {
+    "workPool": "default",
+    "timezone": "UTC",
+    "concurrencyLimit": 1,
+    "parameters": {
+      "well_source": "poc_well_index",
+      "max_wells": 1,
+      "td_gap_seconds": 3600,
+      "dry_run": true,
+      "reset_checkpoint": false
+    }
+  },
+  "paramsSchema": {
+    "type": "object",
+    "properties": {
+      "well_name": {
+        "type": "string"
+      },
+      "well_source": {
+        "type": "string",
+        "default": "poc_well_index",
+        "enum": ["poc_well_index", "poc_raw", "merged_raw"]
+      },
+      "max_wells": {
+        "type": "integer",
+        "default": 1,
+        "minimum": 1,
+        "maximum": 100
+      },
+      "td_gap_seconds": {
+        "type": "integer",
+        "default": 3600,
+        "minimum": 1
+      },
+      "dry_run": {
+        "type": "boolean",
+        "default": true
+      },
+      "reset_checkpoint": {
+        "type": "boolean",
+        "default": false
+      }
+    },
+    "required": []
+  },
+  "initialState": {}
+}

@@ -1,0 +1,43 @@
+{
+  "key": "stage_options_v1",
+  "displayName": "Stage Options",
+  "description": "Stage options and windows for the selected labeller well.",
+  "sql": "SELECT * FROM (SELECT stage_num AS label, stage_num AS value, stage_start_ts, stage_end_ts, sample_count, source_record_count FROM featurestore:stage_index_v1 WHERE name = :well_name ORDER BY stage_num) q",
+  "valueSchema": {
+    "type": "object",
+    "properties": {
+      "label": {
+        "type": "number"
+      },
+      "value": {
+        "type": "number"
+      },
+      "stage_start_ts": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "stage_end_ts": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "sample_count": {
+        "type": "number"
+      },
+      "source_record_count": {
+        "type": "number"
+      }
+    },
+    "required": []
+  },
+  "paramsSchema": {
+    "type": "object",
+    "properties": {
+      "well_name": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "well_name"
+    ]
+  }
+}

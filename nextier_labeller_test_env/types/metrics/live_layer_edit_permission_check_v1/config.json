@@ -1,0 +1,30 @@
+{
+  "key": "live_layer_edit_permission_check_v1",
+  "displayName": "Live Layer Edit Permission Check",
+  "description": "Live dashboard copy of layer_edit_permission_check_v1.",
+  "sql": "SELECT * FROM (SELECT CASE WHEN COALESCE(source_type, 'user') = 'user' AND COALESCE(is_editable, true) = true AND owner_email = :current_user_email THEN 1 ELSE 0 END AS can_edit FROM datastore:substage_label_layers_v3 WHERE layer_id = :layer_id AND COALESCE(status, 'active') = 'active' LIMIT 1) q",
+  "valueSchema": {
+    "type": "object",
+    "properties": {
+      "can_edit": {
+        "type": "number"
+      }
+    },
+    "required": []
+  },
+  "paramsSchema": {
+    "type": "object",
+    "properties": {
+      "layer_id": {
+        "type": "string"
+      },
+      "current_user_email": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "layer_id",
+      "current_user_email"
+    ]
+  }
+}

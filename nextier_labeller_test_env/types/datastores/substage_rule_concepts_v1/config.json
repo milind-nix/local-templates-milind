@@ -1,0 +1,47 @@
+{
+  "key": "substage_rule_concepts_v1",
+  "displayName": "Substage Rule Concepts",
+  "description": "Reusable annotation layer concepts owned by labelers.",
+  "dataSchema": {
+    "type": "object",
+    "properties": {
+      "rule_concept_id": {
+        "type": "string",
+        "metadata": {
+          "isPrimaryKey": true
+        }
+      },
+      "labeler_id": {
+        "type": "string"
+      },
+      "name": {
+        "type": "string"
+      },
+      "rules_text": {
+        "type": "string"
+      },
+      "status": {
+        "type": "string"
+      },
+      "created_at": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "updated_at": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "deleted_at": {
+        "type": "string",
+        "format": "date-time"
+      }
+    },
+    "required": [
+      "rule_concept_id",
+      "labeler_id",
+      "name",
+      "status",
+      "created_at"
+    ]
+  }
+}

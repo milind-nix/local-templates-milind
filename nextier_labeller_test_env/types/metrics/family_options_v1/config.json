@@ -1,0 +1,23 @@
+{
+  "key": "family_options_v1",
+  "displayName": "Family Options",
+  "description": "Distinct well family options for the labeller family selector.",
+  "sql": "SELECT * FROM (SELECT DISTINCT well_family AS label, well_family AS value FROM featurestore:well_index_v1 WHERE well_family IS NOT NULL ORDER BY well_family)",
+  "valueSchema": {
+    "type": "object",
+    "properties": {
+      "label": {
+        "type": "string"
+      },
+      "value": {
+        "type": "string"
+      }
+    },
+    "required": []
+  },
+  "paramsSchema": {
+    "type": "object",
+    "properties": {},
+    "required": []
+  }
+}

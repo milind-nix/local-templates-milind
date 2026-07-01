@@ -1,0 +1,36 @@
+{
+  "key": "live_fleet_stream_customer_v1",
+  "displayName": "Fleet Stream Customer",
+  "description": "Live telemetry rows from the fleet stream customer table for stage and substage detection dashboards.",
+  "dataSchema": {
+    "type": "object",
+    "properties": {
+      "created_ts": {
+        "type": "string",
+        "format": "date-time",
+        "metadata": {
+          "isPrimaryKey": true
+        }
+      },
+      "name": {
+        "type": "string",
+        "metadata": {
+          "isPrimaryKey": true
+        }
+      },
+      "rate_slurry": {
+        "type": "number"
+      },
+      "prop_conc_blend_denso": {
+        "type": "number"
+      },
+      "press_mainline": {
+        "type": "number"
+      }
+    },
+    "required": [
+      "created_ts",
+      "name"
+    ]
+  }
+}

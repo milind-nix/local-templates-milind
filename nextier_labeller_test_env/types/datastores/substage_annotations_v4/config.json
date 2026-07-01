@@ -1,0 +1,118 @@
+{
+  "key": "substage_annotations_v4",
+  "displayName": "Substage Annotations",
+  "description": "Persisted point and window annotations with source and user audit metadata.",
+  "dataSchema": {
+    "type": "object",
+    "properties": {
+      "annotation_id": {
+        "type": "string",
+        "metadata": {
+          "isPrimaryKey": true
+        }
+      },
+      "layer_id": {
+        "type": "string"
+      },
+      "rule_concept_id": {
+        "type": "string"
+      },
+      "labeler_id": {
+        "type": "string"
+      },
+      "frac_id": {
+        "type": "number"
+      },
+      "site": {
+        "type": "string"
+      },
+      "name": {
+        "type": "string"
+      },
+      "stage_num": {
+        "type": "number"
+      },
+      "annotation_type": {
+        "type": "string"
+      },
+      "substage_name": {
+        "type": "string"
+      },
+      "selected_feature": {
+        "type": "string"
+      },
+      "start_feature": {
+        "type": "string"
+      },
+      "end_feature": {
+        "type": "string"
+      },
+      "start_time": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "end_time": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "timestamp": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "start_telemetry_point_id": {
+        "type": "string"
+      },
+      "end_telemetry_point_id": {
+        "type": "string"
+      },
+      "notes": {
+        "type": "string"
+      },
+      "metadata_json": {
+        "type": "string"
+      },
+      "source_type": {
+        "type": "string"
+      },
+      "created_by_email": {
+        "type": "string"
+      },
+      "updated_by_email": {
+        "type": "string"
+      },
+      "is_public": {
+        "type": "boolean"
+      },
+      "status": {
+        "type": "string"
+      },
+      "created_at": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "updated_at": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "deleted_at": {
+        "type": "string",
+        "format": "date-time"
+      }
+    },
+    "required": [
+      "annotation_id",
+      "layer_id",
+      "labeler_id",
+      "name",
+      "annotation_type",
+      "substage_name",
+      "selected_feature",
+      "start_time",
+      "end_time",
+      "timestamp",
+      "source_type",
+      "status",
+      "created_at"
+    ]
+  }
+}

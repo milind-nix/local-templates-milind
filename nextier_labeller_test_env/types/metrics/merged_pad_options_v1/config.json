@@ -1,0 +1,32 @@
+{
+  "key": "merged_pad_options_v1",
+  "displayName": "Merged Pad Options",
+  "description": "Distinct pad options from merged well index for the selected fleet.",
+  "sql": "SELECT * FROM ( SELECT DISTINCT pad_name AS label, pad_name AS value, fleet_name FROM (VALUES ('Alpha 1H','Alpha 1','Fleet Alpha','Pad A-1',101,'42-001-0001',6), ('Alpha 2H','Alpha 2','Fleet Alpha','Pad A-1',102,'42-001-0002',6), ('Alpha 3H','Alpha 3','Fleet Alpha','Pad A-2',103,'42-001-0003',5), ('Bravo 1H','Bravo 1','Fleet Bravo','Pad B-1',201,'42-002-0001',6), ('Bravo 2H','Bravo 2','Fleet Bravo','Pad B-1',202,'42-002-0002',4)) AS w(name, well_family, fleet_name, pad_name, well_id, api_num, stage_count) WHERE fleet_name = :fleet_name ORDER BY label ) q",
+  "valueSchema": {
+    "type": "object",
+    "properties": {
+      "label": {
+        "type": "string"
+      },
+      "value": {
+        "type": "string"
+      },
+      "fleet_name": {
+        "type": "string"
+      }
+    },
+    "required": []
+  },
+  "paramsSchema": {
+    "type": "object",
+    "properties": {
+      "fleet_name": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "fleet_name"
+    ]
+  }
+}

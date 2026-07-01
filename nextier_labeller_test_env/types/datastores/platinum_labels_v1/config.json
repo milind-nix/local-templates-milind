@@ -1,0 +1,32 @@
+{
+  "key": "platinum_labels_v1",
+  "displayName": "Platinum Labels",
+  "description": "Preprocessed platinum substage labels loaded from preprocessed/platinum_labels.parquet.",
+  "dataSchema": {
+    "type": "object",
+    "properties": {
+      "idx": {
+        "type": "bigint",
+        "metadata": {
+          "isPrimaryKey": true
+        }
+      },
+      "name": {
+        "type": "string"
+      },
+      "datetime_fmt": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "stage_num_td": {
+        "type": "number"
+      },
+      "substage": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "idx"
+    ]
+  }
+}

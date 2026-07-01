@@ -1,0 +1,66 @@
+{
+  "key": "live_detection_platinum_timeseries_v1",
+  "displayName": "Live Detection Platinum Timeseries",
+  "description": "Selected-stage Platinum telemetry and workflow labels for the Nix Substage Detection dashboard.",
+  "sql": "SELECT * FROM (SELECT p.name AS well_name, p.stage_num_td AS stage_num, CAST(p.datetime_fmt AS timestamp) AS ts, CASE WHEN LOWER(p.substage) = 'design' THEN 'slurry' WHEN LOWER(p.substage) = 'na' THEN NULL ELSE p.substage END AS substage_label, p.rate_slurry, p.press_mainline, CASE WHEN :concentration_feature = 'inline' THEN t.prop_conc_inline WHEN :concentration_feature = 'target' THEN t.prop_conc_target WHEN :concentration_feature = 'auger' THEN t.prop_conc_blend_auger ELSE p.prop_conc_blend_denso END AS selected_concentration, p.inferred_pressure, p.inferred_design_rate AS design_rate, p.inferred_design_rate * 0.95 AS design_rate_high, p.inferred_design_rate * 0.90 AS design_rate_rampdown FROM featurestore:live_platinum_labels_v1 p LEFT JOIN datastore:live_fleet_stream_customer_full_v1 t ON t.name = p.name AND t.record_ts = CAST(p.datetime_fmt AS timestamp) WHERE p.name = :well_name AND p.stage_num_td = :stage_num ORDER BY CAST(p.datetime_fmt AS timestamp)) q",
+  "valueSchema": {
+    "type": "object",
+    "properties": {
+      "ts": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "well_name": {
+        "type": "string"
+      },
+      "stage_num": {
+        "type": "number"
+      },
+      "substage_label": {
+        "type": "string"
+      },
+      "rate_slurry": {
+        "type": "number"
+      },
+      "press_mainline": {
+        "type": "number"
+      },
+      "selected_concentration": {
+        "type": "number"
+      },
+      "inferred_pressure": {
+        "type": "number"
+      },
+      "design_rate": {
+        "type": "number"
+      },
+      "design_rate_high": {
+        "type": "number"
+      },
+      "design_rate_rampdown": {
+        "type": "number"
+      }
+    },
+    "required": []
+  },
+  "paramsSchema": {
+    "type": "object",
+    "properties": {
+      "well_name": {
+        "type": "string"
+      },
+      "stage_num": {
+        "type": "number"
+      },
+      "concentration_feature": {
+        "type": "string",
+        "default": "denso"
+      }
+    },
+    "required": [
+      "well_name",
+      "stage_num",
+      "concentration_feature"
+    ]
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "key": "merged_fleet_stream_customer_full_v2",
+  "displayName": "Merged Fleet Stream Customer Full",
+  "description": "Sandbox raw telemetry table with the exact same schema as the live fleet stream table",
+  "dataSchema": {
+    "type": "object",
+    "properties": {
+      "created_ts": {
+        "type": "string",
+        "format": "date-time",
+        "metadata": {
+          "isPrimaryKey": true
+        }
+      },
+      "fleet_name": {
+        "type": "string"
+      },
+      "pad_name": {
+        "type": "string"
+      },
+      "record_ts": {
+        "type": "string",
+        "format": "date-time",
+        "metadata": {
+          "isPrimaryKey": true
+        }
+      },
+      "name": {
+        "type": "string",
+        "metadata": {
+          "isPrimaryKey": true
+        }
+      },
+      "id": {
+        "type": "string"
+      },
+      "api_num": {
+        "type": "string"
+      },
+      "rate_slurry": {
+        "type": "number"
+      },
+      "prop_conc_target": {
+        "type": "number"
+      },
+      "prop_conc_blend_denso": {
+        "type": "number"
+      },
+      "prop_conc_blend_auger": {
+        "type": "number"
+      },
+      "prop_conc_inline": {
+        "type": "number"
+      },
+      "press_mainline": {
+        "type": "number"
+      }
+    },
+    "required": [
+      "created_ts",
+      "record_ts",
+      "name"
+    ]
+  }
+}

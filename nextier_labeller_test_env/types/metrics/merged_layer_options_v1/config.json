@@ -1,0 +1,79 @@
+{
+  "key": "merged_layer_options_v1",
+  "displayName": "Merged Layer Options",
+  "description": "Fixed live labeller layers: read-only automatic labels, shared manual labels, and the current user's personal manual layer.",
+  "sql": "SELECT * FROM ( SELECT 'system:model:platinum_substage_labels' AS id, 'Automatic Substage Labels' AS name, 'System generated · Read-only' AS description, 'platinum_substage_labels' AS rule_concept_id, :labeler_id AS labeler_id, :well_name AS well_name, 'system-model' AS owner_email, 'system-model' AS created_by_email, 'system-model' AS updated_by_email, 'model' AS source_type, false AS is_editable, false AS can_edit, -100 AS display_order, true AS is_visible_default, 'active' AS status UNION ALL SELECT 'manual:shared' AS id, 'Manual' AS name, 'Shared manual layer · Editable by everyone' AS description, 'manual_shared' AS rule_concept_id, :labeler_id AS labeler_id, :well_name AS well_name, 'shared' AS owner_email, 'shared' AS created_by_email, 'shared' AS updated_by_email, 'user' AS source_type, true AS is_editable, true AS can_edit, 0 AS display_order, true AS is_visible_default, 'active' AS status ) q",
+  "valueSchema": {
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "string"
+      },
+      "name": {
+        "type": "string"
+      },
+      "description": {
+        "type": "string"
+      },
+      "rule_concept_id": {
+        "type": "string"
+      },
+      "labeler_id": {
+        "type": "string"
+      },
+      "well_name": {
+        "type": "string"
+      },
+      "owner_email": {
+        "type": "string"
+      },
+      "created_by_email": {
+        "type": "string"
+      },
+      "updated_by_email": {
+        "type": "string"
+      },
+      "source_type": {
+        "type": "string"
+      },
+      "is_editable": {
+        "type": "boolean"
+      },
+      "can_edit": {
+        "type": "boolean"
+      },
+      "display_order": {
+        "type": "number"
+      },
+      "is_visible_default": {
+        "type": "boolean"
+      },
+      "status": {
+        "type": "string"
+      }
+    },
+    "required": []
+  },
+  "paramsSchema": {
+    "type": "object",
+    "properties": {
+      "well_name": {
+        "type": "string"
+      },
+      "labeler_id": {
+        "type": "string"
+      },
+      "current_user_email": {
+        "type": "string"
+      },
+      "layer_refresh_nonce": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "well_name",
+      "labeler_id",
+      "current_user_email"
+    ]
+  }
+}

@@ -1,0 +1,70 @@
+{
+  "key": "merged_platinum_labels_v1",
+  "displayName": "Merged Platinum Labels",
+  "description": "Sandbox Platinum labels recomputed from merged raw telemetry.",
+  "sql": "SELECT name, CAST(NULL AS DOUBLE PRECISION) AS stage_num_td, CAST(NULL AS TEXT) AS datetime_fmt, CAST(NULL AS TEXT) AS substage, CAST(NULL AS DOUBLE PRECISION) AS rate_slurry, CAST(NULL AS DOUBLE PRECISION) AS press_mainline, CAST(NULL AS DOUBLE PRECISION) AS prop_conc_blend_denso, CAST(NULL AS DOUBLE PRECISION) AS inferred_design_rate, CAST(NULL AS DOUBLE PRECISION) AS inferred_pressure, CAST(NULL AS TEXT) AS model_name, CAST(NULL AS TEXT) AS source_type, CAST(NULL AS TEXT) AS created_at, CAST(NULL AS TEXT) AS updated_at FROM datastore:merged_fleet_stream_customer_full_v2 WHERE 1 = 0",
+  "checkpoint_fields": [],
+  "upsert": true,
+  "dataSchema": {
+    "type": "object",
+    "properties": {
+      "name": {
+        "type": "string",
+        "metadata": {
+          "isPrimaryKey": true
+        }
+      },
+      "stage_num_td": {
+        "type": "number",
+        "metadata": {
+          "isPrimaryKey": true
+        }
+      },
+      "datetime_fmt": {
+        "type": "string",
+        "format": "date-time",
+        "metadata": {
+          "isPrimaryKey": true
+        }
+      },
+      "substage": {
+        "type": "string"
+      },
+      "rate_slurry": {
+        "type": "number"
+      },
+      "press_mainline": {
+        "type": "number"
+      },
+      "prop_conc_blend_denso": {
+        "type": "number"
+      },
+      "inferred_design_rate": {
+        "type": "number"
+      },
+      "inferred_pressure": {
+        "type": "number"
+      },
+      "model_name": {
+        "type": "string"
+      },
+      "source_type": {
+        "type": "string"
+      },
+      "created_at": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "updated_at": {
+        "type": "string",
+        "format": "date-time"
+      }
+    },
+    "required": [
+      "name",
+      "stage_num_td",
+      "datetime_fmt",
+      "substage"
+    ]
+  }
+}

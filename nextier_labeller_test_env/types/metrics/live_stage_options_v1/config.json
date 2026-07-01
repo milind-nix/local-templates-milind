@@ -1,0 +1,40 @@
+{
+  "key": "live_stage_options_v1",
+  "displayName": "Live Stage Options",
+  "description": "Live TD stage options and windows for the selected well.",
+  "sql": "SELECT * FROM (SELECT stage_num_td AS label, stage_num_td AS value, stage_start_ts, stage_end_ts, sample_count FROM featurestore:live_td_stage_index_v1 WHERE name = :well_name ORDER BY stage_num_td) q",
+  "valueSchema": {
+    "type": "object",
+    "properties": {
+      "label": {
+        "type": "number"
+      },
+      "value": {
+        "type": "number"
+      },
+      "stage_start_ts": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "stage_end_ts": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "sample_count": {
+        "type": "number"
+      }
+    },
+    "required": []
+  },
+  "paramsSchema": {
+    "type": "object",
+    "properties": {
+      "well_name": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "well_name"
+    ]
+  }
+}

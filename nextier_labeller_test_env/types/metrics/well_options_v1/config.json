@@ -1,0 +1,49 @@
+{
+  "key": "well_options_v1",
+  "displayName": "Well Options",
+  "description": "Well options for the selected labeller family.",
+  "sql": "SELECT * FROM (SELECT name AS label, name AS value, frac_id, site, source_file, stage_count, first_ts, last_ts FROM featurestore:well_index_v1 WHERE well_family = :well_family ORDER BY name) q",
+  "valueSchema": {
+    "type": "object",
+    "properties": {
+      "label": {
+        "type": "string"
+      },
+      "value": {
+        "type": "string"
+      },
+      "frac_id": {
+        "type": "number"
+      },
+      "site": {
+        "type": "string"
+      },
+      "source_file": {
+        "type": "string"
+      },
+      "stage_count": {
+        "type": "number"
+      },
+      "first_ts": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "last_ts": {
+        "type": "string",
+        "format": "date-time"
+      }
+    },
+    "required": []
+  },
+  "paramsSchema": {
+    "type": "object",
+    "properties": {
+      "well_family": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "well_family"
+    ]
+  }
+}

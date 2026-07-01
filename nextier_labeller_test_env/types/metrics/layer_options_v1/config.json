@@ -1,0 +1,79 @@
+{
+  "key": "layer_options_v1",
+  "displayName": "Layer Options",
+  "description": "Saved annotation layers plus read-only system/model layers for the selected well and labeler.",
+  "sql": "SELECT * FROM (WITH user_layers AS (SELECT l.layer_id AS id, l.layer_name AS name, CASE WHEN COALESCE(l.source_type, 'user') = 'user' THEN COALESCE(l.owner_email, 'Unknown owner') ELSE 'System generated' END || CASE WHEN COALESCE(l.source_type, 'user') = 'user' AND COALESCE(l.is_editable, true) = true AND l.owner_email = :current_user_email THEN ' \u00b7 Editable' ELSE ' \u00b7 Read-only' END AS description, l.rule_concept_id, l.labeler_id, l.name AS well_name, l.owner_email, l.created_by_email, l.updated_by_email, COALESCE(l.source_type, 'user') AS source_type, COALESCE(l.is_editable, true) AS is_editable, CASE WHEN COALESCE(l.source_type, 'user') = 'user' AND COALESCE(l.is_editable, true) = true AND l.owner_email = :current_user_email THEN true ELSE false END AS can_edit, l.display_order, l.is_visible_default, COALESCE(l.status, 'active') AS status, l.created_at AS sort_created_at FROM datastore:substage_label_layers_v3 l WHERE l.name = :well_name AND l.labeler_id = :labeler_id AND COALESCE(l.status, 'active') = 'active'), platinum_layer AS (SELECT 'system:model:platinum_substage_labels' AS id, 'Platinum Substage Labels' AS name, 'System generated \u00b7 Read-only' AS description, 'platinum_substage_labels' AS rule_concept_id, :labeler_id AS labeler_id, :well_name AS well_name, 'system-model' AS owner_email, 'system-model' AS created_by_email, 'system-model' AS updated_by_email, 'model' AS source_type, false AS is_editable, false AS can_edit, -100 AS display_order, true AS is_visible_default, 'active' AS status, NULL::timestamp AS sort_created_at WHERE EXISTS (SELECT 1 FROM datastore:platinum_labels_v1 p WHERE p.name = :well_name AND p.substage IS NOT NULL AND p.substage <> 'NA' LIMIT 1)), unioned AS (SELECT * FROM user_layers UNION ALL SELECT * FROM platinum_layer) SELECT id, name, description, rule_concept_id, labeler_id, well_name, owner_email, created_by_email, updated_by_email, source_type, is_editable, can_edit, display_order, is_visible_default, status FROM unioned ORDER BY display_order ASC, name ASC, sort_created_at ASC) q",
+  "valueSchema": {
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "string"
+      },
+      "name": {
+        "type": "string"
+      },
+      "description": {
+        "type": "string"
+      },
+      "rule_concept_id": {
+        "type": "string"
+      },
+      "labeler_id": {
+        "type": "string"
+      },
+      "well_name": {
+        "type": "string"
+      },
+      "owner_email": {
+        "type": "string"
+      },
+      "created_by_email": {
+        "type": "string"
+      },
+      "updated_by_email": {
+        "type": "string"
+      },
+      "source_type": {
+        "type": "string"
+      },
+      "is_editable": {
+        "type": "boolean"
+      },
+      "can_edit": {
+        "type": "boolean"
+      },
+      "display_order": {
+        "type": "number"
+      },
+      "is_visible_default": {
+        "type": "boolean"
+      },
+      "status": {
+        "type": "string"
+      }
+    },
+    "required": []
+  },
+  "paramsSchema": {
+    "type": "object",
+    "properties": {
+      "well_name": {
+        "type": "string"
+      },
+      "labeler_id": {
+        "type": "string"
+      },
+      "current_user_email": {
+        "type": "string"
+      },
+      "layer_refresh_nonce": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "well_name",
+      "labeler_id",
+      "current_user_email"
+    ]
+  }
+}

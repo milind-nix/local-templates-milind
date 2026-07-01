@@ -1,0 +1,62 @@
+{
+  "key": "chart_timeseries_window_v1",
+  "displayName": "Chart Time Series by Window",
+  "description": "Telemetry rows for the labeller chart using an explicit time window plus context padding.",
+  "sql": "SELECT * FROM (WITH bounds AS (SELECT (:start_time)::timestamp - (:context_minutes || ' minutes')::interval AS context_start_ts, (:end_time)::timestamp + (:context_minutes || ' minutes')::interval AS context_end_ts) SELECT CAST(t.name AS TEXT) || ':' || CAST(t.stage_num AS TEXT) || ':' || CAST(t.datetime_fmt AS TEXT) AS telemetry_point_id, t.name AS well_name, t.datetime_fmt AS timestamp, t.stage_num, t.rate_slurry, t.press_mainline, t.prop_conc_blend_denso, t.records_in_bucket FROM datastore:historian_telemetry_v1 t CROSS JOIN bounds b WHERE t.name = :well_name AND t.datetime_fmt BETWEEN b.context_start_ts AND b.context_end_ts ORDER BY t.datetime_fmt) q",
+  "valueSchema": {
+    "type": "object",
+    "properties": {
+      "telemetry_point_id": {
+        "type": "string"
+      },
+      "well_name": {
+        "type": "string"
+      },
+      "timestamp": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "stage_num": {
+        "type": "number"
+      },
+      "rate_slurry": {
+        "type": "number"
+      },
+      "press_mainline": {
+        "type": "number"
+      },
+      "prop_conc_blend_denso": {
+        "type": "number"
+      },
+      "records_in_bucket": {
+        "type": "number"
+      }
+    },
+    "required": []
+  },
+  "paramsSchema": {
+    "type": "object",
+    "properties": {
+      "well_name": {
+        "type": "string"
+      },
+      "start_time": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "end_time": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "context_minutes": {
+        "type": "number"
+      }
+    },
+    "required": [
+      "well_name",
+      "start_time",
+      "end_time",
+      "context_minutes"
+    ]
+  }
+}

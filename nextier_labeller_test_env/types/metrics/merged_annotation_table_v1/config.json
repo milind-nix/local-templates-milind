@@ -1,0 +1,119 @@
+{
+  "key": "merged_annotation_table_v1",
+  "displayName": "Merged Annotation Table",
+  "description": "Merged dashboard copy of annotation_table_v1.",
+  "sql": "SELECT * FROM ( WITH bb AS ( SELECT EXTRACT(EPOCH FROM CAST(:start_time AS TIMESTAMP)) AS s0, EXTRACT(EPOCH FROM CAST(:end_time AS TIMESTAMP)) AS s1 ) SELECT md5('platinum|' || CAST(:well_name AS TEXT) || '|' || CAST(g.k AS TEXT)) AS annotation_id, 'system:model:platinum_substage_labels' AS layer_id, 'platinum_substage_labels' AS rule_concept_id, CAST(:well_name AS TEXT) AS well_name, 1 + CAST(FLOOR(g.k / 6.0) AS INTEGER) AS stage_num, CASE g.k WHEN 0 THEN 'stage_start' WHEN 1 THEN 'ramp_up' WHEN 2 THEN 'design' WHEN 3 THEN 'ramp_down' WHEN 4 THEN 'shut_off' ELSE 'stage_end' END AS substage_name, CAST(to_timestamp(b.s0 + (g.k / 6.0) * (b.s1 - b.s0)) AS TIMESTAMP) AS start_time, CAST(to_timestamp(b.s0 + ((g.k + 1) / 6.0) * (b.s1 - b.s0)) AS TIMESTAMP) AS end_time, CAST(to_timestamp(b.s0 + (g.k / 6.0) * (b.s1 - b.s0)) AS TIMESTAMP) AS timestamp, CAST(NULL AS TEXT) AS start_feature, CAST(NULL AS TEXT) AS end_feature, CAST(NULL AS TEXT) AS selected_feature, 'window' AS annotation_type, :labeler_id AS labeler_id, CAST(NULL AS TEXT) AS notes, 'model' AS source_type, 'system-model' AS created_by_email, 'system-model' AS updated_by_email, false AS can_edit, 'active' AS status, CAST(to_timestamp(b.s0) AS TIMESTAMP) AS created_at, CAST(to_timestamp(b.s1) AS TIMESTAMP) AS updated_at, CASE g.k WHEN 0 THEN '#1A008B' WHEN 1 THEN '#FF1892' WHEN 2 THEN '#01FF81' WHEN 3 THEN '#FEA804' WHEN 4 THEN '#830080' ELSE '#08FDFF' END AS color FROM bb b CROSS JOIN generate_series(0, 5) AS g(k) ) q",
+  "valueSchema": {
+    "type": "object",
+    "properties": {
+      "annotation_id": {
+        "type": "string"
+      },
+      "well_name": {
+        "type": "string"
+      },
+      "stage_num": {
+        "type": "number"
+      },
+      "substage_name": {
+        "type": "string"
+      },
+      "start_time": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "end_time": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "timestamp": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "start_feature": {
+        "type": "string"
+      },
+      "end_feature": {
+        "type": "string"
+      },
+      "selected_feature": {
+        "type": "string"
+      },
+      "annotation_type": {
+        "type": "string"
+      },
+      "labeler_id": {
+        "type": "string"
+      },
+      "notes": {
+        "type": "string"
+      },
+      "source_type": {
+        "type": "string"
+      },
+      "created_by_email": {
+        "type": "string"
+      },
+      "updated_by_email": {
+        "type": "string"
+      },
+      "can_edit": {
+        "type": "boolean"
+      },
+      "status": {
+        "type": "string"
+      },
+      "created_at": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "updated_at": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "layer_id": {
+        "type": "string"
+      },
+      "rule_concept_id": {
+        "type": "string"
+      },
+      "color": {
+        "type": "string"
+      }
+    },
+    "required": []
+  },
+  "paramsSchema": {
+    "type": "object",
+    "properties": {
+      "well_name": {
+        "type": "string"
+      },
+      "stage_num": {
+        "type": "number"
+      },
+      "start_time": {
+        "type": "string"
+      },
+      "end_time": {
+        "type": "string"
+      },
+      "annotation_refresh_nonce": {
+        "type": "string"
+      },
+      "current_user_email": {
+        "type": "string"
+      },
+      "labeler_id": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "well_name",
+      "start_time",
+      "end_time",
+      "current_user_email",
+      "labeler_id"
+    ]
+  }
+}

@@ -1,0 +1,125 @@
+{
+  "key": "live_annotation_table_by_layer_v1",
+  "displayName": "Live Annotation Table by Layer",
+  "description": "Live dashboard copy of annotation_table_by_layer_v1.",
+  "sql": "SELECT * FROM (WITH user_annotations AS (SELECT a.annotation_id, a.layer_id, a.rule_concept_id, a.name AS well_name, a.stage_num, a.substage_name, a.start_time, a.end_time, COALESCE(a.timestamp, a.start_time) AS timestamp, a.start_feature, a.end_feature, a.selected_feature, a.annotation_type, a.labeler_id, a.notes, COALESCE(a.source_type, 'user') AS source_type, a.created_by_email, a.updated_by_email, CASE WHEN COALESCE(l.source_type, 'user') = 'user' AND COALESCE(l.is_editable, true) = true AND l.owner_email = :current_user_email THEN true ELSE false END AS can_edit, COALESCE(a.status, 'active') AS status, a.created_at, a.updated_at, CAST(NULL AS TEXT) AS color FROM datastore:substage_annotations_v4 a LEFT JOIN datastore:substage_label_layers_v3 l ON l.layer_id = a.layer_id WHERE a.name = :well_name AND COALESCE(a.status, 'active') = 'active' AND a.layer_id = :layer_id AND CAST(a.start_time AS timestamp) <= CAST(:end_time AS timestamp) AND CAST(a.end_time AS timestamp) >= CAST(:start_time AS timestamp)), platinum_base AS (SELECT name AS well_name, stage_num_td AS stage_num, CAST(datetime_fmt AS TIMESTAMP) AS ts, substage FROM featurestore:live_platinum_labels_v1 WHERE :layer_id = 'system:model:platinum_substage_labels' AND name = :well_name AND CAST(datetime_fmt AS TIMESTAMP) >= CAST(:start_time AS TIMESTAMP) AND CAST(datetime_fmt AS TIMESTAMP) <= CAST(:end_time AS TIMESTAMP) AND substage IS NOT NULL AND substage <> 'NA'), platinum_marks AS (SELECT well_name, stage_num, ts, substage, CASE WHEN substage IS DISTINCT FROM LAG(substage) OVER (PARTITION BY well_name, stage_num ORDER BY ts) THEN 1 ELSE 0 END AS new_group FROM platinum_base), platinum_groups AS (SELECT well_name, stage_num, ts, substage, SUM(new_group) OVER (PARTITION BY well_name, stage_num ORDER BY ts) AS label_group FROM platinum_marks), platinum_windows AS (SELECT well_name, stage_num, substage, label_group, MIN(ts) AS start_time, MAX(ts) AS end_time FROM platinum_groups GROUP BY well_name, stage_num, substage, label_group), platinum_annotations AS (SELECT md5('platinum|' || well_name || '|' || CAST(stage_num AS TEXT) || '|' || substage || '|' || CAST(start_time AS TEXT) || '|' || CAST(end_time AS TEXT)) AS annotation_id, 'system:model:platinum_substage_labels' AS layer_id, 'platinum_substage_labels' AS rule_concept_id, well_name, stage_num, substage AS substage_name, start_time, end_time, start_time AS timestamp, CAST(NULL AS TEXT) AS start_feature, CAST(NULL AS TEXT) AS end_feature, CAST(NULL AS TEXT) AS selected_feature, 'window' AS annotation_type, :labeler_id AS labeler_id, CAST(NULL AS TEXT) AS notes, 'model' AS source_type, 'system-model' AS created_by_email, 'system-model' AS updated_by_email, false AS can_edit, 'active' AS status, start_time AS created_at, end_time AS updated_at, CASE WHEN substage = 'stage_start' THEN '#1A008B' WHEN substage = 'ramp_up' THEN '#FF1892' WHEN substage = 'slurry' THEN '#01FF81' WHEN substage = 'design' THEN '#01FF81' WHEN substage = 'ramp_down' THEN '#FEA804' WHEN substage = 'shut_off' THEN '#830080' WHEN substage = 'stage_end' THEN '#08FDFF' ELSE '#787878' END AS color FROM platinum_windows WHERE start_time < end_time), unioned AS (SELECT * FROM user_annotations UNION ALL SELECT * FROM platinum_annotations) SELECT * FROM unioned ORDER BY start_time ASC, end_time ASC, created_at ASC) q",
+  "valueSchema": {
+    "type": "object",
+    "properties": {
+      "annotation_id": {
+        "type": "string"
+      },
+      "well_name": {
+        "type": "string"
+      },
+      "stage_num": {
+        "type": "number"
+      },
+      "substage_name": {
+        "type": "string"
+      },
+      "start_time": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "end_time": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "timestamp": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "start_feature": {
+        "type": "string"
+      },
+      "end_feature": {
+        "type": "string"
+      },
+      "selected_feature": {
+        "type": "string"
+      },
+      "annotation_type": {
+        "type": "string"
+      },
+      "labeler_id": {
+        "type": "string"
+      },
+      "notes": {
+        "type": "string"
+      },
+      "source_type": {
+        "type": "string"
+      },
+      "created_by_email": {
+        "type": "string"
+      },
+      "updated_by_email": {
+        "type": "string"
+      },
+      "can_edit": {
+        "type": "boolean"
+      },
+      "status": {
+        "type": "string"
+      },
+      "created_at": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "updated_at": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "layer_id": {
+        "type": "string"
+      },
+      "rule_concept_id": {
+        "type": "string"
+      },
+      "color": {
+        "type": "string"
+      }
+    },
+    "required": []
+  },
+  "paramsSchema": {
+    "type": "object",
+    "properties": {
+      "well_name": {
+        "type": "string"
+      },
+      "stage_num": {
+        "type": "number"
+      },
+      "start_time": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "end_time": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "annotation_refresh_nonce": {
+        "type": "string"
+      },
+      "layer_id": {
+        "type": "string"
+      },
+      "current_user_email": {
+        "type": "string"
+      },
+      "labeler_id": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "well_name",
+      "start_time",
+      "end_time",
+      "layer_id",
+      "current_user_email",
+      "labeler_id"
+    ]
+  }
+}
