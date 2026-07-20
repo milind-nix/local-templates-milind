@@ -156,7 +156,7 @@ async def nextier_merged_copper_stage_index_v1_flow(
                 SELECT name, datetime_fmt, copper_provisional, copper_confirmed,
                        copper_continuous, fleet_name, pad_name
                 FROM featurestore:{COPPER_KEY}
-                WHERE (:well_name IS NULL OR name = :well_name)
+                WHERE (CAST(:well_name AS VARCHAR) IS NULL OR name = :well_name)
                 ORDER BY name, datetime_fmt
             """,
             workspace_id=workspace_id,
@@ -175,7 +175,7 @@ async def nextier_merged_copper_stage_index_v1_flow(
             sql=f"""
                 SELECT name, record_ts, rate_slurry, press_mainline
                 FROM datastore:{SOURCE_KEY}
-                WHERE (:well_name IS NULL OR name = :well_name)
+                WHERE (CAST(:well_name AS VARCHAR) IS NULL OR name = :well_name)
             """,
             workspace_id=workspace_id,
             params={"well_name": well_name},

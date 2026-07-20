@@ -175,8 +175,8 @@ async def nextier_merged_bronze_labeling_v2_flow(
                 SELECT name, record_ts, rate_slurry, press_mainline,
                        prop_conc_blend_denso, fleet_name, pad_name
                 FROM datastore:{SOURCE_KEY}
-                WHERE (:well_name IS NULL OR name = :well_name)
-                  AND (:lower_ts IS NULL OR record_ts >= CAST(:lower_ts AS timestamp))
+                WHERE (CAST(:well_name AS VARCHAR) IS NULL OR name = :well_name)
+                  AND (CAST(:lower_ts AS TIMESTAMP) IS NULL OR record_ts >= CAST(:lower_ts AS timestamp))
                 ORDER BY name, record_ts
             """,
             workspace_id=workspace_id,

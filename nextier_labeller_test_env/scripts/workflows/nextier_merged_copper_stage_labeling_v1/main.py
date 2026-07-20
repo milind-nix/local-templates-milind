@@ -96,7 +96,7 @@ async def nextier_merged_copper_stage_labeling_v1_flow(
             sql=f"""
                 SELECT name, datetime_fmt, bronze_continuous, fleet_name, pad_name
                 FROM featurestore:{BRONZE_KEY}
-                WHERE (:well_name IS NULL OR name = :well_name)
+                WHERE (CAST(:well_name AS VARCHAR) IS NULL OR name = :well_name)
                 ORDER BY name, datetime_fmt
             """,
             workspace_id=workspace_id,
