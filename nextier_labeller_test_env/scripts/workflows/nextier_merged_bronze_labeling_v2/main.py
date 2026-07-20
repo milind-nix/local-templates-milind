@@ -203,7 +203,7 @@ async def nextier_merged_bronze_labeling_v2_flow(
             await delete_featurestore_records(
                 featurestore_key=BRONZE_KEY,
                 workspace_id=workspace_id,
-                filters={"name": name},
+                filters=[{"field": "name", "op": "eq", "value": name}],
             )
             await write_featurestore(
                 featurestore_key=BRONZE_KEY,

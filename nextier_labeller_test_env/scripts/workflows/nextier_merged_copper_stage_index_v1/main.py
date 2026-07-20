@@ -203,7 +203,7 @@ async def nextier_merged_copper_stage_index_v1_flow(
             await delete_featurestore_records(
                 featurestore_key=INDEX_KEY,
                 workspace_id=workspace_id,
-                filters={"name": name},
+                filters=[{"field": "name", "op": "eq", "value": name}],
             )
             await write_featurestore(
                 featurestore_key=INDEX_KEY,
