@@ -215,10 +215,10 @@ async def nextier_merged_bronze_labeling_v2_flow(
             manifest = pd.DataFrame(
                 [
                     {
-                        "fleet_name": (well_df.get("fleet_name") or pd.Series([None])).iloc[0]
+                        "fleet_name": well_df["fleet_name"].iloc[0]
                         if "fleet_name" in well_df
                         else None,
-                        "pad_name": (well_df.get("pad_name") or pd.Series([None])).iloc[0]
+                        "pad_name": well_df["pad_name"].iloc[0]
                         if "pad_name" in well_df
                         else None,
                         "name": name,
