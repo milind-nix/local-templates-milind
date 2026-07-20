@@ -162,6 +162,7 @@ async def nextier_merged_bronze_labeling_v2_flow(
     td_gap_seconds: int = 3600,
     dry_run: bool = False,
     workspace_id: int | None = None,
+    workflow_id: int | None = None,
 ) -> dict[str, Any]:
     logger = get_run_logger()
     if mode not in {"live", "incremental", "historical", "rebuild"}:

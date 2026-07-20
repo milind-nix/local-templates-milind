@@ -141,6 +141,7 @@ async def nextier_merged_copper_stage_index_v1_flow(
     stage_layer: str = "continuous",
     dry_run: bool = False,
     workspace_id: int | None = None,
+    workflow_id: int | None = None,
 ) -> dict[str, Any]:
     logger = get_run_logger()
     if mode not in {"live", "incremental", "historical", "rebuild"}:
