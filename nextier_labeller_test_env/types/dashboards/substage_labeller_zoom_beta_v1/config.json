@@ -1,10 +1,10 @@
 {
-  "key": "substage_labeller_live_v1",
+  "key": "substage_labeller_zoom_beta_v1",
   "displayName": "Substage Labeller",
-  "description": "Beta merged POC + live substage labeller dashboard using merged telemetry and recomputed TD stages.",
-  "order": 4,
+  "description": "Pad-aware substage labeller beta with optional well and stage filtering.",
+  "order": 7,
   "config": {
-    "updateInterval": "5s",
+    "updateInterval": "5m",
     "specVersion": "v2"
   },
   "paramsSchema": {
@@ -65,10 +65,7 @@
         },
         "visible_layer_ids": {
           "type": "array",
-          "default": [
-            "system:model:platinum_substage_labels",
-            "manual:shared"
-          ]
+          "default": ["system:model:platinum_substage_labels", "manual:shared"]
         },
         "active_layer_id": {
           "type": "string",
@@ -80,11 +77,23 @@
         },
         "chart_mode": {
           "type": "string",
-          "default": "scatter"
+          "default": "line"
         },
         "concentration_feature": {
           "type": "string",
-          "default": "denso"
+          "default": "auger"
+        },
+        "well_name_filter": {
+          "type": "string",
+          "default": "__ALL__"
+        },
+        "stage_num_filter": {
+          "type": "number",
+          "default": -1
+        },
+        "data_window": {
+          "type": "string",
+          "default": "previous_6h"
         }
       }
     },
@@ -95,10 +104,10 @@
       {
         "id": "selection_form",
         "title": "Selection",
-        "description": "Choose the well and optional stage to plot.",
+        "description": "Choose the fleet, pad, and time range to plot.",
         "chrome": {
           "showActions": false,
-          "padding": 12,
+          "padding": 8,
           "hideTitle": true
         },
         "renderConfig": {
@@ -144,13 +153,46 @@
                       }
                     }
                   },
+                  "context_minutes": {
+                    "type": "number",
+                    "default": 0,
+                    "metadata": {
+                      "ui": {
+                        "label": "Context (min)",
+                        "component": "number",
+                        "placeholder": "0"
+                      }
+                    }
+                  },
+                  "start_time": {
+                    "type": "string",
+                    "metadata": {
+                      "ui": {
+                        "label": "Start Time",
+                        "component": "date-time",
+                        "onChangeEventId": "manual_time_bounds_changed"
+                      }
+                    }
+                  },
+                  "end_time": {
+                    "type": "string",
+                    "metadata": {
+                      "ui": {
+                        "label": "End Time",
+                        "component": "date-time",
+                        "onChangeEventId": "manual_time_bounds_changed"
+                      }
+                    }
+                  },
                   "well_name": {
                     "type": "string",
                     "metadata": {
                       "ui": {
                         "label": "Well",
                         "component": "select",
-                        "placeholder": "Select well",
+                        "placeholder": "Optional well",
+                        "clearable": true,
+                        "clearLabel": "All wells",
                         "optionsMetric": {
                           "metricKey": "merged_well_options_v1",
                           "params": {
@@ -170,7 +212,9 @@
                       "ui": {
                         "label": "Stage",
                         "component": "select",
-                        "placeholder": "Select stage",
+                        "placeholder": "Optional stage",
+                        "clearable": true,
+                        "clearLabel": "All stages",
                         "optionsMetric": {
                           "metricKey": "merged_stage_options_v1",
                           "params": {
@@ -179,104 +223,61 @@
                           "valuePath": "value",
                           "labelPath": "label"
                         },
-                        "clearable": true,
-                        "clearLabel": "None",
                         "onChangeEventId": "stage_num_changed"
                       }
                     }
                   },
-                  "context_minutes": {
-                    "type": "number",
-                    "default": 0,
-                    "metadata": {
-                      "ui": {
-                        "label": "Context (min)",
-                        "component": "number",
-                        "placeholder": "0"
-                      }
-                    }
+                  "well_name_filter": {
+                    "type": "string"
                   },
-                  "start_time": {
+                  "stage_num_filter": {
+                    "type": "number"
+                  },
+                  "data_window": {
                     "type": "string",
                     "metadata": {
                       "ui": {
-                        "label": "Start Time",
-                        "component": "date-time"
-                      }
-                    }
-                  },
-                  "end_time": {
-                    "type": "string",
-                    "metadata": {
-                      "ui": {
-                        "label": "End Time",
-                        "component": "date-time"
-                      }
-                    }
-                  },
-                  "chart_mode": {
-                    "type": "string",
-                    "default": "scatter",
-                    "enum": [
-                      "scatter",
-                      "line"
-                    ],
-                    "metadata": {
-                      "ui": {
-                        "label": "Mode",
+                        "label": "Data Window",
                         "component": "select",
-                        "placeholder": "Select mode",
+                        "placeholder": "Select data window",
+                        "clearable": false,
                         "options": [
                           {
-                            "label": "Scatter",
-                            "value": "scatter"
+                            "label": "Custom",
+                            "value": "custom"
                           },
                           {
-                            "label": "Line",
-                            "value": "line"
+                            "label": "Latest 6 hours",
+                            "value": "previous_6h"
+                          },
+                          {
+                            "label": "Latest 12 hours",
+                            "value": "previous_12h"
+                          },
+                          {
+                            "label": "Latest 48 hours",
+                            "value": "previous_48h"
+                          },
+                          {
+                            "label": "Latest 72 hours",
+                            "value": "previous_72h"
+                          },
+                          {
+                            "label": "All available data",
+                            "value": "all"
                           }
-                        ]
+                        ],
+                        "onChangeEventId": "data_window_changed"
                       }
-                    }
-                  },
-                  "concentration_feature": {
-                    "type": "string",
-                    "default": "denso",
-                    "enum": [
-                      "denso",
-                      "inline",
-                      "target",
-                      "auger"
-                    ],
-                    "metadata": {
-                      "ui": {
-                        "label": "Choose Concentration type",
-                        "component": "select",
-                        "placeholder": "Select concentration",
-                        "options": [
-                          {
-                            "label": "Denso",
-                            "value": "denso"
-                          },
-                          {
-                            "label": "Inline",
-                            "value": "inline"
-                          },
-                          {
-                            "label": "Target",
-                            "value": "target"
-                          },
-                          {
-                            "label": "Auger",
-                            "value": "auger"
-                          }
-                        ]
-                      }
-                    }
+                    },
+                    "default": "previous_6h"
                   }
                 },
                 "required": [
-                  "well_name"
+                  "fleet_name",
+                  "pad_name",
+                  "start_time",
+                  "end_time"
                 ],
                 "additionalProperties": false
               },
@@ -288,29 +289,35 @@
                 "context_minutes": "{{state.context_minutes}}",
                 "start_time": "{{state.start_time}}",
                 "end_time": "{{state.end_time}}",
-                "chart_mode": "{{state.chart_mode}}",
-                "concentration_feature": "{{state.concentration_feature}}"
+                "well_name_filter": "{{state.well_name_filter}}",
+                "stage_num_filter": "{{state.stage_num_filter}}",
+                "data_window": "{{state.data_window}}"
               },
               "layout": {
                 "cols": 12,
-                "gap": 15,
+                "gap": 12,
                 "rows": [
                   {
                     "items": [
                       {
                         "type": "field",
                         "key": "fleet_name",
-                        "colSpan": 4
+                        "colSpan": 3
                       },
                       {
                         "type": "field",
                         "key": "pad_name",
-                        "colSpan": 4
+                        "colSpan": 3
                       },
                       {
                         "type": "field",
                         "key": "well_name",
-                        "colSpan": 4
+                        "colSpan": 3
+                      },
+                      {
+                        "type": "field",
+                        "key": "stage_num",
+                        "colSpan": 3
                       }
                     ]
                   },
@@ -319,45 +326,32 @@
                       {
                         "type": "field",
                         "key": "start_time",
-                        "colSpan": 6
+                        "colSpan": 4
                       },
                       {
                         "type": "field",
                         "key": "end_time",
-                        "colSpan": 6
-                      }
-                    ]
-                  },
-                  {
-                    "items": [
-                      {
-                        "type": "field",
-                        "key": "stage_num",
-                        "colSpan": 3
+                        "colSpan": 4
                       },
                       {
                         "type": "field",
                         "key": "context_minutes",
-                        "colSpan": 3
-                      },
-                      {
-                        "type": "field",
-                        "key": "chart_mode",
-                        "colSpan": 3
-                      },
-                      {
-                        "type": "field",
-                        "key": "concentration_feature",
-                        "colSpan": 3
+                        "colSpan": 4
                       }
                     ]
                   },
                   {
                     "items": [
                       {
+                        "type": "field",
+                        "key": "data_window",
+                        "colSpan": 8
+                      },
+                      {
                         "type": "button",
                         "key": "apply_selection",
-                        "colSpan": 1
+                        "colSpan": 4,
+                        "align": "end"
                       }
                     ]
                   }
@@ -398,7 +392,10 @@
                 "stage_num": null,
                 "context_minutes": "{{form.context_minutes}}",
                 "start_time": null,
-                "end_time": null
+                "end_time": null,
+                "well_name_filter": "__ALL__",
+                "stage_num_filter": -1,
+                "data_window": "previous_6h"
               }
             }
           ],
@@ -412,7 +409,29 @@
                 "stage_num": null,
                 "context_minutes": "{{form.context_minutes}}",
                 "start_time": null,
-                "end_time": null
+                "end_time": null,
+                "well_name_filter": "__ALL__",
+                "stage_num_filter": -1,
+                "data_window": "{{form.data_window}}"
+              }
+            },
+            {
+              "type": "compute_metric",
+              "metricKey": "merged_pad_relative_time_bounds_v1",
+              "params": {
+                "fleet_name": "{{form.fleet_name}}",
+                "pad_name": "{{form.pad_name}}",
+                "well_name": "__ALL__",
+                "stage_num": -1,
+                "time_range": "{{form.data_window}}"
+              },
+              "resultKey": "time_bounds"
+            },
+            {
+              "type": "set_form_values",
+              "updates": {
+                "start_time": "{{context.time_bounds.first.start_time}}",
+                "end_time": "{{context.time_bounds.first.end_time}}"
               }
             }
           ],
@@ -426,14 +445,41 @@
                 "stage_num": null,
                 "context_minutes": "{{form.context_minutes}}",
                 "start_time": null,
-                "end_time": null
+                "end_time": null,
+                "data_window": "{{form.data_window}}"
+              }
+            },
+            {
+              "type": "set_form_values",
+              "updates": {
+                "well_name_filter": "__ALL__",
+                "stage_num_filter": -1
+              },
+              "when": {
+                "ref": "form.well_name",
+                "op": "empty"
+              }
+            },
+            {
+              "type": "set_form_values",
+              "updates": {
+                "well_name_filter": "{{form.well_name}}",
+                "stage_num_filter": -1
+              },
+              "when": {
+                "ref": "form.well_name",
+                "op": "not_empty"
               }
             },
             {
               "type": "compute_metric",
-              "metricKey": "merged_well_time_bounds_v1",
+              "metricKey": "merged_pad_relative_time_bounds_v1",
               "params": {
-                "well_name": "{{form.well_name}}"
+                "fleet_name": "{{form.fleet_name}}",
+                "pad_name": "{{form.pad_name}}",
+                "well_name": "{{form.well_name_filter}}",
+                "stage_num": -1,
+                "time_range": "{{form.data_window}}"
               },
               "resultKey": "time_bounds"
             },
@@ -455,33 +501,41 @@
                 "stage_num": "{{form.stage_num}}",
                 "context_minutes": "{{form.context_minutes}}",
                 "start_time": null,
-                "end_time": null
+                "end_time": null,
+                "data_window": "{{form.data_window}}"
               }
             },
             {
-              "type": "compute_metric",
-              "metricKey": "merged_well_time_bounds_v1",
-              "params": {
-                "well_name": "{{form.well_name}}"
+              "type": "set_form_values",
+              "updates": {
+                "stage_num_filter": -1
               },
-              "resultKey": "time_bounds",
               "when": {
                 "ref": "form.stage_num",
                 "op": "empty"
               }
             },
             {
-              "type": "compute_metric",
-              "metricKey": "merged_stage_time_bounds_v1",
-              "params": {
-                "well_name": "{{form.well_name}}",
-                "stage_num": "{{form.stage_num}}"
+              "type": "set_form_values",
+              "updates": {
+                "stage_num_filter": "{{form.stage_num}}"
               },
-              "resultKey": "time_bounds",
               "when": {
                 "ref": "form.stage_num",
                 "op": "not_empty"
               }
+            },
+            {
+              "type": "compute_metric",
+              "metricKey": "merged_pad_relative_time_bounds_v1",
+              "params": {
+                "fleet_name": "{{form.fleet_name}}",
+                "pad_name": "{{form.pad_name}}",
+                "well_name": "{{form.well_name_filter}}",
+                "stage_num": "{{form.stage_num_filter}}",
+                "time_range": "{{form.data_window}}"
+              },
+              "resultKey": "time_bounds"
             },
             {
               "type": "set_form_values",
@@ -493,7 +547,7 @@
           ],
           "apply_selection": [
             {
-              "type": "set_state",
+              "type": "set_view_state",
               "updates": {
                 "fleet_name": "{{form.fleet_name}}",
                 "pad_name": "{{form.pad_name}}",
@@ -502,7 +556,165 @@
                 "context_minutes": "{{form.context_minutes}}",
                 "start_time": "{{form.start_time}}",
                 "end_time": "{{form.end_time}}",
-                "chart_mode": "{{form.chart_mode}}",
+                "well_name_filter": "{{form.well_name_filter}}",
+                "stage_num_filter": "{{form.stage_num_filter}}",
+                "data_window": "{{form.data_window}}"
+              }
+            }
+          ],
+          "data_window_changed": [
+            {
+              "type": "compute_metric",
+              "metricKey": "merged_pad_relative_time_bounds_v1",
+              "params": {
+                "fleet_name": "{{form.fleet_name}}",
+                "pad_name": "{{form.pad_name}}",
+                "well_name": "{{form.well_name_filter}}",
+                "stage_num": "{{form.stage_num_filter}}",
+                "time_range": "{{form.data_window}}"
+              },
+              "resultKey": "time_bounds"
+            },
+            {
+              "type": "set_form_values",
+              "updates": {
+                "start_time": "{{context.time_bounds.first.start_time}}",
+                "end_time": "{{context.time_bounds.first.end_time}}"
+              }
+            }
+          ],
+          "manual_time_bounds_changed": [
+            {
+              "type": "set_form_values",
+              "updates": {
+                "data_window": "custom"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": "chart_controls",
+        "title": "Chart Controls",
+        "description": "Controls for chart rendering and concentration source.",
+        "chrome": {
+          "disableCard": false,
+          "showActions": false,
+          "hideTitle": true,
+          "padding": 8
+        },
+        "renderConfig": {
+          "library": "Custom",
+          "options": {
+            "type": "form",
+            "config": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "chart_mode": {
+                    "type": "string",
+                    "default": "line",
+                    "metadata": {
+                      "ui": {
+                        "label": "Mode",
+                        "component": "select",
+                        "options": [
+                          {
+                            "label": "Scatter",
+                            "value": "scatter"
+                          },
+                          {
+                            "label": "Line",
+                            "value": "line"
+                          }
+                        ],
+                        "onChangeEventId": "chart_mode_changed",
+                        "labelPlacement": "outside-left",
+                        "size": "sm"
+                      }
+                    }
+                  },
+                  "concentration_feature": {
+                    "type": "string",
+                    "default": "auger",
+                    "metadata": {
+                      "ui": {
+                        "label": "Concentration",
+                        "component": "select",
+                        "options": [
+                          {
+                            "label": "Denso",
+                            "value": "denso"
+                          },
+                          {
+                            "label": "Inline",
+                            "value": "inline"
+                          },
+                          {
+                            "label": "Target",
+                            "value": "target"
+                          },
+                          {
+                            "label": "Auger",
+                            "value": "auger"
+                          }
+                        ],
+                        "onChangeEventId": "concentration_feature_changed",
+                        "labelPlacement": "outside-left",
+                        "size": "sm"
+                      }
+                    }
+                  }
+                },
+                "required": ["chart_mode", "concentration_feature"],
+                "additionalProperties": false
+              },
+              "formData": {
+                "chart_mode": "{{state.chart_mode}}",
+                "concentration_feature": "{{state.concentration_feature}}"
+              },
+              "layout": {
+                "cols": 12,
+                "gap": 10,
+                "rows": [
+                  {
+                    "items": [
+                      {
+                        "type": "field",
+                        "key": "chart_mode",
+                        "colSpan": 2
+                      },
+                      {
+                        "type": "field",
+                        "key": "concentration_feature",
+                        "colSpan": 2
+                      }
+                    ]
+                  }
+                ]
+              },
+              "actions": []
+            },
+            "ui": {
+              "fieldRadius": "sm",
+              "fieldVariant": "bordered",
+              "fieldSize": "sm"
+            }
+          }
+        },
+        "events": {
+          "chart_mode_changed": [
+            {
+              "type": "set_state",
+              "updates": {
+                "chart_mode": "{{form.chart_mode}}"
+              }
+            }
+          ],
+          "concentration_feature_changed": [
+            {
+              "type": "set_state",
+              "updates": {
                 "concentration_feature": "{{form.concentration_feature}}"
               }
             }
@@ -540,9 +752,7 @@
                     }
                   }
                 },
-                "required": [
-                  "layer_name"
-                ],
+                "required": ["layer_name"],
                 "additionalProperties": false
               },
               "layout": {
@@ -671,17 +881,21 @@
               "placeholder": "Select layers",
               "selectionMode": "multiple",
               "optionsMetric": {
-                "metricKey": "merged_layer_options_v1",
+                "metricKey": "merged_pad_layer_options_v1",
                 "params": {
-                  "well_name": "{{state.well_name}}",
                   "labeler_id": "{{state.labeler_id}}",
                   "current_user_email": "{{session.user.email}}",
-                  "layer_refresh_nonce": "{{state.layer_refresh_nonce}}"
+                  "layer_refresh_nonce": "{{state.layer_refresh_nonce}}",
+                  "fleet_name": "{{state.fleet_name}}",
+                  "pad_name": "{{state.pad_name}}",
+                  "well_name": "{{state.well_name_filter}}"
                 },
                 "required": [
-                  "well_name",
+                  "fleet_name",
+                  "pad_name",
                   "labeler_id",
-                  "current_user_email"
+                  "current_user_email",
+                  "well_name"
                 ],
                 "valuePath": "id",
                 "labelPath": "name",
@@ -727,62 +941,89 @@
         "dataConfig": {
           "chart_data": {
             "source": "metric",
-            "metricKey": "merged_chart_timeseries_window_v1",
-            "fieldName": "timestamp,rate_slurry,press_mainline,selected_concentration,stage_num,telemetry_point_id,context_anchor",
+            "metricKey": "merged_pad_chart_timeseries_window_zoom_v1",
+            "fieldName": "well_name,timestamp,rate_slurry,press_mainline,selected_concentration,stage_num,telemetry_point_id,context_anchor",
+            "defaultParams": {
+              "resolution_mode": "__AUTO__"
+            },
             "bindings": {
               "query": {
-                "well_name": "well_name",
-                "start_time": "start_time",
-                "end_time": "end_time",
+                "start_time": [
+                  "three_axis_annotation_chart__zoom__loaded_start_time",
+                  "start_time"
+                ],
+                "end_time": [
+                  "three_axis_annotation_chart__zoom__loaded_end_time",
+                  "end_time"
+                ],
                 "context_minutes": "context_minutes",
-                "concentration_feature": "concentration_feature"
+                "concentration_feature": "concentration_feature",
+                "fleet_name": "fleet_name",
+                "pad_name": "pad_name",
+                "well_name": "well_name_filter",
+                "stage_num": "stage_num_filter",
+                "resolution_mode": "three_axis_annotation_chart__zoom__loaded_resolution"
               },
               "required": [
-                "well_name",
+                "fleet_name",
+                "pad_name",
                 "start_time",
                 "end_time",
                 "context_minutes",
-                "concentration_feature"
+                "concentration_feature",
+                "well_name",
+                "stage_num",
+                "resolution_mode"
               ]
             }
           },
           "layer_rows": {
             "source": "metric",
-            "metricKey": "merged_layer_options_v1",
+            "metricKey": "merged_pad_layer_options_v1",
             "fieldName": "id,name,rule_concept_id,labeler_id,well_name,owner_email,created_by_email,updated_by_email,source_type,is_editable,can_edit,display_order,is_visible_default,status",
             "bindings": {
               "query": {
-                "well_name": "well_name",
                 "labeler_id": "labeler_id",
                 "current_user_email": "session.user.email",
-                "layer_refresh_nonce": "layer_refresh_nonce"
+                "layer_refresh_nonce": "layer_refresh_nonce",
+                "fleet_name": "fleet_name",
+                "pad_name": "pad_name",
+                "well_name": "well_name_filter"
               },
               "required": [
-                "well_name",
+                "fleet_name",
+                "pad_name",
                 "labeler_id",
-                "current_user_email"
+                "current_user_email",
+                "well_name"
               ]
             }
           },
           "annotation_rows": {
             "source": "metric",
-            "metricKey": "merged_annotation_table_v1",
+            "metricKey": "merged_pad_annotation_table_v1",
             "fieldName": "annotation_id,layer_id,rule_concept_id,well_name,stage_num,substage_name,start_time,end_time,timestamp,start_feature,end_feature,selected_feature,annotation_type,labeler_id,notes,source_type,created_by_email,updated_by_email,can_edit,status,created_at,updated_at,color",
             "bindings": {
               "query": {
-                "well_name": "well_name",
                 "start_time": "start_time",
                 "end_time": "end_time",
                 "labeler_id": "labeler_id",
                 "current_user_email": "session.user.email",
-                "annotation_refresh_nonce": "annotation_refresh_nonce"
+                "annotation_refresh_nonce": "annotation_refresh_nonce",
+                "fleet_name": "fleet_name",
+                "pad_name": "pad_name",
+                "well_name": "well_name_filter",
+                "stage_num": "stage_num_filter"
               },
               "required": [
-                "well_name",
+                "fleet_name",
+                "pad_name",
                 "start_time",
                 "end_time",
                 "labeler_id",
-                "current_user_email"
+                "current_user_email",
+                "well_name",
+                "stage_num"
               ]
             }
           }
@@ -820,12 +1061,8 @@
                 ]
               },
               "dataZoomResetOnFormSubmit": {
-                "widgetIds": [
-                  "selection_form"
-                ],
-                "eventIds": [
-                  "apply_selection"
-                ]
+                "widgetIds": ["selection_form"],
+                "eventIds": ["apply_selection"]
               },
               "mainContent": {
                 "option": {
@@ -843,6 +1080,7 @@
                     "nameGap": 42,
                     "axisLabel": {
                       "hideOverlap": true,
+                      "color": "rgba(148, 163, 184, 0.9)",
                       "fontSize": 14
                     },
                     "splitLine": {
@@ -985,14 +1223,18 @@
                     {
                       "name": "Pressure (psi)",
                       "type": "scatter",
-                      "large": true,
                       "encode": {
                         "x": "chart_data.timestamp",
-                        "y": "chart_data.press_mainline"
+                        "y": "chart_data.press_mainline",
+                        "tooltip": [
+                          "chart_data.well_name",
+                          "chart_data.timestamp",
+                          "chart_data.press_mainline"
+                        ]
                       },
                       "xAxisId": "X",
                       "yAxisId": "Y_pressure",
-                      "symbolSize": 2,
+                      "symbolSize": 3.5,
                       "color": "#F33F75",
                       "datasetIndex": 0,
                       "itemStyle": {
@@ -1009,19 +1251,27 @@
                         "itemStyle": {
                           "opacity": 0.22
                         }
-                      }
+                      },
+                      "large": true,
+                      "largeThreshold": 2000,
+                      "progressive": 5000,
+                      "progressiveThreshold": 10000
                     },
                     {
                       "name": "Rate (bpm)",
                       "type": "scatter",
-                      "large": true,
                       "encode": {
                         "x": "chart_data.timestamp",
-                        "y": "chart_data.rate_slurry"
+                        "y": "chart_data.rate_slurry",
+                        "tooltip": [
+                          "chart_data.well_name",
+                          "chart_data.timestamp",
+                          "chart_data.rate_slurry"
+                        ]
                       },
                       "xAxisId": "X",
                       "yAxisId": "Y_rate",
-                      "symbolSize": 2,
+                      "symbolSize": 3.5,
                       "color": "#4B4ED6",
                       "datasetIndex": 0,
                       "itemStyle": {
@@ -1038,19 +1288,27 @@
                         "itemStyle": {
                           "opacity": 0.22
                         }
-                      }
+                      },
+                      "large": true,
+                      "largeThreshold": 2000,
+                      "progressive": 5000,
+                      "progressiveThreshold": 10000
                     },
                     {
                       "name": "Concentration (ppa)",
                       "type": "scatter",
-                      "large": true,
                       "encode": {
                         "x": "chart_data.timestamp",
-                        "y": "chart_data.selected_concentration"
+                        "y": "chart_data.selected_concentration",
+                        "tooltip": [
+                          "chart_data.well_name",
+                          "chart_data.timestamp",
+                          "chart_data.selected_concentration"
+                        ]
                       },
                       "xAxisId": "X",
                       "yAxisId": "Y_conc",
-                      "symbolSize": 2,
+                      "symbolSize": 3.5,
                       "color": "#E6982E",
                       "datasetIndex": 0,
                       "itemStyle": {
@@ -1067,7 +1325,11 @@
                         "itemStyle": {
                           "opacity": 0.22
                         }
-                      }
+                      },
+                      "large": true,
+                      "largeThreshold": 2000,
+                      "progressive": 5000,
+                      "progressiveThreshold": 10000
                     },
                     {
                       "name": "__context_extent__",
@@ -1096,6 +1358,7 @@
                     {
                       "source": "data:dataset",
                       "dimensions": [
+                        "chart_data.well_name",
                         "chart_data.timestamp",
                         "chart_data.press_mainline",
                         "chart_data.rate_slurry",
@@ -1107,19 +1370,14 @@
                     }
                   ],
                   "tooltip": {
-                    "trigger": "axis",
-                    "axisPointer": {
-                      "type": "cross",
-                      "label": {
-                        "backgroundColor": "#334155"
-                      }
-                    },
+                    "trigger": "item",
                     "backgroundColor": "rgba(15, 23, 42, 0.92)",
                     "borderColor": "rgba(148, 163, 184, 0.18)",
                     "textStyle": {
                       "color": "#E5E7EB",
                       "fontSize": 11
-                    }
+                    },
+                    "triggerOn": "mousemove|click"
                   },
                   "legend": {
                     "top": 6,
@@ -1131,6 +1389,7 @@
                     "itemWidth": 10,
                     "itemHeight": 10,
                     "textStyle": {
+                      "color": "rgba(148, 163, 184, 0.95)",
                       "fontSize": 14
                     }
                   },
@@ -1218,21 +1477,6 @@
                         "color": "#E6982E",
                         "borderColor": "#E6982E"
                       }
-                    },
-                    {
-                      "type": "inside",
-                      "yAxisIndex": 0,
-                      "filterMode": "none"
-                    },
-                    {
-                      "type": "inside",
-                      "yAxisIndex": 1,
-                      "filterMode": "none"
-                    },
-                    {
-                      "type": "inside",
-                      "yAxisIndex": 2,
-                      "filterMode": "none"
                     }
                   ]
                 },
@@ -1253,37 +1497,86 @@
               "onLayerActivateEventId": "activate_layer",
               "labelOptions": [
                 {
-                  "label": "Stage Start",
-                  "value": "stage_start",
-                  "color": "#5B5FC7"
+                  "label": "Open Well",
+                  "value": "open_well",
+                  "color": "#2563EB"
                 },
                 {
-                  "label": "Ramp Up",
-                  "value": "ramp_up",
-                  "color": "#D64B8B"
+                  "label": "Stage Start",
+                  "value": "stage_start",
+                  "color": "#16A34A"
+                },
+                {
+                  "label": "Pad",
+                  "value": "pad",
+                  "color": "#F97316"
+                },
+                {
+                  "label": "TTR",
+                  "value": "ttr",
+                  "color": "#9333EA"
                 },
                 {
                   "label": "Slurry",
                   "value": "slurry",
-                  "color": "#3BA66B"
+                  "color": "#DC2626"
                 },
                 {
-                  "label": "Ramp Down",
-                  "value": "ramp_down",
-                  "color": "#D9902F"
-                },
-                {
-                  "label": "Shut Off",
-                  "value": "shut_off",
-                  "color": "#9A4C8D"
+                  "label": "Flush",
+                  "value": "flush",
+                  "color": "#0D9488"
                 },
                 {
                   "label": "Stage End",
                   "value": "stage_end",
-                  "color": "#4AA8B5"
+                  "color": "#DB2777"
+                },
+                {
+                  "label": "Close Well",
+                  "value": "close_well",
+                  "color": "#EAB308"
                 }
               ],
-              "allowCustomLabels": true
+              "allowCustomLabels": true,
+              "tooltipDimensionLabels": {
+                "chart_data.well_name": "Well",
+                "chart_data.timestamp": "Time",
+                "chart_data.press_mainline": "Pressure",
+                "chart_data.rate_slurry": "Rate",
+                "chart_data.selected_concentration": "Concentration",
+                "chart_data.stage_num": "Stage"
+              }
+            }
+          },
+          "runtime": {
+            "interactions": {
+              "refetchOnZoom": {
+                "enabled": true,
+                "eventId": "chart_zoom_range_changed",
+                "baseStart": "{{state.start_time}}",
+                "baseEnd": "{{state.end_time}}",
+                "strategy": {
+                  "thresholds": [
+                    {
+                      "maxRangeSeconds": 21600,
+                      "resolution": "raw"
+                    },
+                    {
+                      "maxRangeSeconds": 259200,
+                      "resolution": "rollup_60s"
+                    },
+                    {
+                      "resolution": "rollup_120s"
+                    }
+                  ]
+                },
+                "boxZoom": {
+                  "enabled": true,
+                  "defaultActive": true,
+                  "history": true,
+                  "reset": true
+                }
+              }
             }
           }
         },
@@ -1363,7 +1656,7 @@
                 "event_type": "created",
                 "event_ts": "{{context.now}}",
                 "actor_email": "{{session.user.email}}",
-                "source_dashboard": "merged_substage_labeller_v1",
+                "source_dashboard": "substage_labeller_beta_v1",
                 "layer_id": "{{event.layer_id}}",
                 "labeler_id": "{{state.labeler_id}}",
                 "name": "{{state.well_name}}",
@@ -1418,6 +1711,42 @@
               "type": "open_view",
               "viewId": "annotation_drawer"
             }
+          ],
+          "chart_zoom_range_changed": [
+            {
+              "type": "set_view_state",
+              "when": {
+                "ref": "event.is_restore",
+                "op": "eq",
+                "value": false
+              },
+              "updates": {
+                "three_axis_annotation_chart__zoom__visible_start_time": "{{event.zoom_start_time}}",
+                "three_axis_annotation_chart__zoom__visible_end_time": "{{event.zoom_end_time}}",
+                "three_axis_annotation_chart__zoom__loaded_start_time": "{{event.zoom_load_start_time}}",
+                "three_axis_annotation_chart__zoom__loaded_end_time": "{{event.zoom_load_end_time}}",
+                "three_axis_annotation_chart__zoom__loaded_resolution": "{{event.zoom_resolution}}",
+                "three_axis_annotation_chart__zoom__history": "{{event.zoom_history}}",
+                "three_axis_annotation_chart__zoom__history_index": "{{event.zoom_history_index}}"
+              }
+            },
+            {
+              "type": "set_view_state",
+              "when": {
+                "ref": "event.is_restore",
+                "op": "eq",
+                "value": true
+              },
+              "updates": {
+                "three_axis_annotation_chart__zoom__visible_start_time": "{{state.start_time}}",
+                "three_axis_annotation_chart__zoom__visible_end_time": "{{state.end_time}}",
+                "three_axis_annotation_chart__zoom__loaded_start_time": "{{state.start_time}}",
+                "three_axis_annotation_chart__zoom__loaded_end_time": "{{state.end_time}}",
+                "three_axis_annotation_chart__zoom__loaded_resolution": "__AUTO__",
+                "three_axis_annotation_chart__zoom__history": "{{event.zoom_history}}",
+                "three_axis_annotation_chart__zoom__history_index": "{{event.zoom_history_index}}"
+              }
+            }
           ]
         }
       },
@@ -1438,62 +1767,89 @@
         "dataConfig": {
           "chart_data": {
             "source": "metric",
-            "metricKey": "merged_chart_timeseries_window_v1",
-            "fieldName": "timestamp,rate_slurry,press_mainline,selected_concentration,stage_num,telemetry_point_id,context_anchor",
+            "metricKey": "merged_pad_chart_timeseries_window_zoom_v1",
+            "fieldName": "well_name,timestamp,rate_slurry,press_mainline,selected_concentration,stage_num,telemetry_point_id,context_anchor",
+            "defaultParams": {
+              "resolution_mode": "__AUTO__"
+            },
             "bindings": {
               "query": {
-                "well_name": "well_name",
-                "start_time": "start_time",
-                "end_time": "end_time",
+                "start_time": [
+                  "three_axis_annotation_chart_line__zoom__loaded_start_time",
+                  "start_time"
+                ],
+                "end_time": [
+                  "three_axis_annotation_chart_line__zoom__loaded_end_time",
+                  "end_time"
+                ],
                 "context_minutes": "context_minutes",
-                "concentration_feature": "concentration_feature"
+                "concentration_feature": "concentration_feature",
+                "fleet_name": "fleet_name",
+                "pad_name": "pad_name",
+                "well_name": "well_name_filter",
+                "stage_num": "stage_num_filter",
+                "resolution_mode": "three_axis_annotation_chart_line__zoom__loaded_resolution"
               },
               "required": [
-                "well_name",
+                "fleet_name",
+                "pad_name",
                 "start_time",
                 "end_time",
                 "context_minutes",
-                "concentration_feature"
+                "concentration_feature",
+                "well_name",
+                "stage_num",
+                "resolution_mode"
               ]
             }
           },
           "layer_rows": {
             "source": "metric",
-            "metricKey": "merged_layer_options_v1",
+            "metricKey": "merged_pad_layer_options_v1",
             "fieldName": "id,name,rule_concept_id,labeler_id,well_name,owner_email,created_by_email,updated_by_email,source_type,is_editable,can_edit,display_order,is_visible_default,status",
             "bindings": {
               "query": {
-                "well_name": "well_name",
                 "labeler_id": "labeler_id",
                 "current_user_email": "session.user.email",
-                "layer_refresh_nonce": "layer_refresh_nonce"
+                "layer_refresh_nonce": "layer_refresh_nonce",
+                "fleet_name": "fleet_name",
+                "pad_name": "pad_name",
+                "well_name": "well_name_filter"
               },
               "required": [
-                "well_name",
+                "fleet_name",
+                "pad_name",
                 "labeler_id",
-                "current_user_email"
+                "current_user_email",
+                "well_name"
               ]
             }
           },
           "annotation_rows": {
             "source": "metric",
-            "metricKey": "merged_annotation_table_v1",
+            "metricKey": "merged_pad_annotation_table_v1",
             "fieldName": "annotation_id,layer_id,rule_concept_id,well_name,stage_num,substage_name,start_time,end_time,timestamp,start_feature,end_feature,selected_feature,annotation_type,labeler_id,notes,source_type,created_by_email,updated_by_email,can_edit,status,created_at,updated_at,color",
             "bindings": {
               "query": {
-                "well_name": "well_name",
                 "start_time": "start_time",
                 "end_time": "end_time",
                 "labeler_id": "labeler_id",
                 "current_user_email": "session.user.email",
-                "annotation_refresh_nonce": "annotation_refresh_nonce"
+                "annotation_refresh_nonce": "annotation_refresh_nonce",
+                "fleet_name": "fleet_name",
+                "pad_name": "pad_name",
+                "well_name": "well_name_filter",
+                "stage_num": "stage_num_filter"
               },
               "required": [
-                "well_name",
+                "fleet_name",
+                "pad_name",
                 "start_time",
                 "end_time",
                 "labeler_id",
-                "current_user_email"
+                "current_user_email",
+                "well_name",
+                "stage_num"
               ]
             }
           }
@@ -1531,12 +1887,8 @@
                 ]
               },
               "dataZoomResetOnFormSubmit": {
-                "widgetIds": [
-                  "selection_form"
-                ],
-                "eventIds": [
-                  "apply_selection"
-                ]
+                "widgetIds": ["selection_form"],
+                "eventIds": ["apply_selection"]
               },
               "lineGapBreak": {
                 "enabled": true,
@@ -1559,6 +1911,7 @@
                     "nameGap": 42,
                     "axisLabel": {
                       "hideOverlap": true,
+                      "color": "rgba(148, 163, 184, 0.9)",
                       "fontSize": 14
                     },
                     "splitLine": {
@@ -1703,7 +2056,12 @@
                       "type": "line",
                       "encode": {
                         "x": "chart_data.timestamp",
-                        "y": "chart_data.press_mainline"
+                        "y": "chart_data.press_mainline",
+                        "tooltip": [
+                          "chart_data.well_name",
+                          "chart_data.timestamp",
+                          "chart_data.press_mainline"
+                        ]
                       },
                       "xAxisId": "X",
                       "yAxisId": "Y_pressure",
@@ -1733,14 +2091,21 @@
                         "color": "#F33F75",
                         "width": 1.8,
                         "opacity": 0.85
-                      }
+                      },
+                      "progressive": 5000,
+                      "progressiveThreshold": 10000
                     },
                     {
                       "name": "Rate (bpm)",
                       "type": "line",
                       "encode": {
                         "x": "chart_data.timestamp",
-                        "y": "chart_data.rate_slurry"
+                        "y": "chart_data.rate_slurry",
+                        "tooltip": [
+                          "chart_data.well_name",
+                          "chart_data.timestamp",
+                          "chart_data.rate_slurry"
+                        ]
                       },
                       "xAxisId": "X",
                       "yAxisId": "Y_rate",
@@ -1770,14 +2135,21 @@
                         "color": "#4B4ED6",
                         "width": 1.8,
                         "opacity": 0.85
-                      }
+                      },
+                      "progressive": 5000,
+                      "progressiveThreshold": 10000
                     },
                     {
                       "name": "Concentration (ppa)",
                       "type": "line",
                       "encode": {
                         "x": "chart_data.timestamp",
-                        "y": "chart_data.selected_concentration"
+                        "y": "chart_data.selected_concentration",
+                        "tooltip": [
+                          "chart_data.well_name",
+                          "chart_data.timestamp",
+                          "chart_data.selected_concentration"
+                        ]
                       },
                       "xAxisId": "X",
                       "yAxisId": "Y_conc",
@@ -1807,7 +2179,9 @@
                         "color": "#E6982E",
                         "width": 1.8,
                         "opacity": 0.85
-                      }
+                      },
+                      "progressive": 5000,
+                      "progressiveThreshold": 10000
                     },
                     {
                       "name": "__context_extent__",
@@ -1836,6 +2210,7 @@
                     {
                       "source": "data:dataset",
                       "dimensions": [
+                        "chart_data.well_name",
                         "chart_data.timestamp",
                         "chart_data.press_mainline",
                         "chart_data.rate_slurry",
@@ -1848,18 +2223,13 @@
                   ],
                   "tooltip": {
                     "trigger": "axis",
-                    "axisPointer": {
-                      "type": "cross",
-                      "label": {
-                        "backgroundColor": "#334155"
-                      }
-                    },
                     "backgroundColor": "rgba(15, 23, 42, 0.92)",
                     "borderColor": "rgba(148, 163, 184, 0.18)",
                     "textStyle": {
                       "color": "#E5E7EB",
                       "fontSize": 11
-                    }
+                    },
+                    "triggerOn": "mousemove|click"
                   },
                   "legend": {
                     "top": 6,
@@ -1886,6 +2256,7 @@
                     "itemWidth": 10,
                     "itemHeight": 10,
                     "textStyle": {
+                      "color": "rgba(148, 163, 184, 0.95)",
                       "fontSize": 14
                     }
                   },
@@ -1973,21 +2344,6 @@
                         "color": "#E6982E",
                         "borderColor": "#E6982E"
                       }
-                    },
-                    {
-                      "type": "inside",
-                      "yAxisIndex": 0,
-                      "filterMode": "none"
-                    },
-                    {
-                      "type": "inside",
-                      "yAxisIndex": 1,
-                      "filterMode": "none"
-                    },
-                    {
-                      "type": "inside",
-                      "yAxisIndex": 2,
-                      "filterMode": "none"
                     }
                   ]
                 },
@@ -2008,37 +2364,86 @@
               "onLayerActivateEventId": "activate_layer",
               "labelOptions": [
                 {
-                  "label": "Stage Start",
-                  "value": "stage_start",
-                  "color": "#5B5FC7"
+                  "label": "Open Well",
+                  "value": "open_well",
+                  "color": "#2563EB"
                 },
                 {
-                  "label": "Ramp Up",
-                  "value": "ramp_up",
-                  "color": "#D64B8B"
+                  "label": "Stage Start",
+                  "value": "stage_start",
+                  "color": "#16A34A"
+                },
+                {
+                  "label": "Pad",
+                  "value": "pad",
+                  "color": "#F97316"
+                },
+                {
+                  "label": "TTR",
+                  "value": "ttr",
+                  "color": "#9333EA"
                 },
                 {
                   "label": "Slurry",
                   "value": "slurry",
-                  "color": "#3BA66B"
+                  "color": "#DC2626"
                 },
                 {
-                  "label": "Ramp Down",
-                  "value": "ramp_down",
-                  "color": "#D9902F"
-                },
-                {
-                  "label": "Shut Off",
-                  "value": "shut_off",
-                  "color": "#9A4C8D"
+                  "label": "Flush",
+                  "value": "flush",
+                  "color": "#0D9488"
                 },
                 {
                   "label": "Stage End",
                   "value": "stage_end",
-                  "color": "#4AA8B5"
+                  "color": "#DB2777"
+                },
+                {
+                  "label": "Close Well",
+                  "value": "close_well",
+                  "color": "#EAB308"
                 }
               ],
-              "allowCustomLabels": true
+              "allowCustomLabels": true,
+              "tooltipDimensionLabels": {
+                "chart_data.well_name": "Well",
+                "chart_data.timestamp": "Time",
+                "chart_data.press_mainline": "Pressure",
+                "chart_data.rate_slurry": "Rate",
+                "chart_data.selected_concentration": "Concentration",
+                "chart_data.stage_num": "Stage"
+              }
+            }
+          },
+          "runtime": {
+            "interactions": {
+              "refetchOnZoom": {
+                "enabled": true,
+                "eventId": "chart_zoom_range_changed",
+                "baseStart": "{{state.start_time}}",
+                "baseEnd": "{{state.end_time}}",
+                "strategy": {
+                  "thresholds": [
+                    {
+                      "maxRangeSeconds": 21600,
+                      "resolution": "raw"
+                    },
+                    {
+                      "maxRangeSeconds": 259200,
+                      "resolution": "rollup_60s"
+                    },
+                    {
+                      "resolution": "rollup_120s"
+                    }
+                  ]
+                },
+                "boxZoom": {
+                  "enabled": true,
+                  "defaultActive": true,
+                  "history": true,
+                  "reset": true
+                }
+              }
             }
           }
         },
@@ -2118,7 +2523,7 @@
                 "event_type": "created",
                 "event_ts": "{{context.now}}",
                 "actor_email": "{{session.user.email}}",
-                "source_dashboard": "merged_substage_labeller_v1",
+                "source_dashboard": "substage_labeller_beta_v1",
                 "layer_id": "{{event.layer_id}}",
                 "labeler_id": "{{state.labeler_id}}",
                 "name": "{{state.well_name}}",
@@ -2173,6 +2578,42 @@
               "type": "open_view",
               "viewId": "annotation_drawer"
             }
+          ],
+          "chart_zoom_range_changed": [
+            {
+              "type": "set_view_state",
+              "when": {
+                "ref": "event.is_restore",
+                "op": "eq",
+                "value": false
+              },
+              "updates": {
+                "three_axis_annotation_chart_line__zoom__visible_start_time": "{{event.zoom_start_time}}",
+                "three_axis_annotation_chart_line__zoom__visible_end_time": "{{event.zoom_end_time}}",
+                "three_axis_annotation_chart_line__zoom__loaded_start_time": "{{event.zoom_load_start_time}}",
+                "three_axis_annotation_chart_line__zoom__loaded_end_time": "{{event.zoom_load_end_time}}",
+                "three_axis_annotation_chart_line__zoom__loaded_resolution": "{{event.zoom_resolution}}",
+                "three_axis_annotation_chart_line__zoom__history": "{{event.zoom_history}}",
+                "three_axis_annotation_chart_line__zoom__history_index": "{{event.zoom_history_index}}"
+              }
+            },
+            {
+              "type": "set_view_state",
+              "when": {
+                "ref": "event.is_restore",
+                "op": "eq",
+                "value": true
+              },
+              "updates": {
+                "three_axis_annotation_chart_line__zoom__visible_start_time": "{{state.start_time}}",
+                "three_axis_annotation_chart_line__zoom__visible_end_time": "{{state.end_time}}",
+                "three_axis_annotation_chart_line__zoom__loaded_start_time": "{{state.start_time}}",
+                "three_axis_annotation_chart_line__zoom__loaded_end_time": "{{state.end_time}}",
+                "three_axis_annotation_chart_line__zoom__loaded_resolution": "__AUTO__",
+                "three_axis_annotation_chart_line__zoom__history": "{{event.zoom_history}}",
+                "three_axis_annotation_chart_line__zoom__history_index": "{{event.zoom_history_index}}"
+              }
+            }
           ]
         }
       },
@@ -2190,7 +2631,7 @@
             "type": "button",
             "config": {
               "label": "Open annotation",
-              "icon": "ℹ"
+              "icon": "\u2139"
             },
             "ui": {
               "preset": "sharp",
@@ -2221,7 +2662,7 @@
       {
         "id": "annotations_table",
         "title": "Annotations",
-        "description": "Saved annotations for the selected well and stage.",
+        "description": "Saved annotations for the selected pad, well, stage, and active layer.",
         "isDataLarge": false,
         "chrome": {
           "disableCard": true,
@@ -2236,11 +2677,12 @@
         "dataConfig": {
           "annotation_rows": {
             "source": "metric",
-            "metricKey": "merged_annotation_table_by_layer_v1",
+            "metricKey": "merged_pad_annotation_table_by_layer_v1",
             "fieldName": "*",
             "bindings": {
               "query": {
-                "well_name": "well_name",
+                "fleet_name": "fleet_name",
+                "pad_name": "pad_name",
                 "start_time": "start_time",
                 "end_time": "end_time",
                 "annotation_refresh_nonce": "annotation_refresh_nonce",
@@ -2249,7 +2691,8 @@
                 "layer_id": "active_layer_id"
               },
               "required": [
-                "well_name",
+                "fleet_name",
+                "pad_name",
                 "start_time",
                 "end_time",
                 "current_user_email",
@@ -2271,6 +2714,11 @@
                   "minWidth": 190,
                   "truncate": true,
                   "className": "font-semibold"
+                },
+                {
+                  "key": "stage_num",
+                  "label": "Stage",
+                  "minWidth": 90
                 },
                 {
                   "key": "substage_name",
@@ -2367,7 +2815,10 @@
                   "annotation_rows.updated_at",
                   "annotation_rows.color"
                 ]
-              }
+              },
+              "groupable": true,
+              "pagination": true,
+              "defaultGroupBy": ["well_name", "stage_num"]
             },
             "ui": {
               "preset": "corporate",
@@ -2382,7 +2833,7 @@
               "enablePagination": true,
               "rowsPerPage": 10,
               "maxBodyHeight": 260,
-              "emptyText": "No annotations for this stage yet."
+              "emptyText": "No annotations for this selection yet."
             }
           }
         }
@@ -2761,7 +3212,7 @@
                 "event_type": "updated",
                 "event_ts": "{{context.now}}",
                 "actor_email": "{{session.user.email}}",
-                "source_dashboard": "merged_substage_labeller_v1",
+                "source_dashboard": "substage_labeller_beta_v1",
                 "layer_id": "{{state.selected_annotation.layer_id}}",
                 "rule_concept_id": "{{state.selected_annotation.rule_concept_id}}",
                 "labeler_id": "{{state.selected_annotation.labeler_id}}",
@@ -2858,7 +3309,7 @@
                 "event_type": "deleted",
                 "event_ts": "{{context.now}}",
                 "actor_email": "{{session.user.email}}",
-                "source_dashboard": "merged_substage_labeller_v1",
+                "source_dashboard": "substage_labeller_beta_v1",
                 "layer_id": "{{state.selected_annotation.layer_id}}",
                 "rule_concept_id": "{{state.selected_annotation.rule_concept_id}}",
                 "labeler_id": "{{state.selected_annotation.labeler_id}}",
@@ -2912,9 +3363,10 @@
     "views": [
       {
         "id": "main",
-        "title": "Merged Substage Labeller (Beta)",
+        "title": "Substage Labeller (Beta)",
         "presentation": {
-          "type": "page"
+          "type": "page",
+          "gridMargin": [12, 8]
         },
         "layout": [
           {
@@ -2924,7 +3376,17 @@
               "x": 0,
               "y": 0,
               "w": 24,
-              "h": 7
+              "h": 8
+            }
+          },
+          {
+            "instanceId": "chart_controls_main",
+            "widgetId": "chart_controls",
+            "gridPos": {
+              "x": 0,
+              "y": 6,
+              "w": 24,
+              "h": 2
             }
           },
           {
@@ -2932,9 +3394,9 @@
             "widgetId": "three_axis_annotation_chart",
             "gridPos": {
               "x": 0,
-              "y": 7,
+              "y": 8,
               "w": 24,
-              "h": 20
+              "h": 24
             },
             "visibleWhen": {
               "ref": "state.chart_mode",
@@ -2947,9 +3409,9 @@
             "widgetId": "three_axis_annotation_chart_line",
             "gridPos": {
               "x": 0,
-              "y": 7,
+              "y": 8,
               "w": 24,
-              "h": 20
+              "h": 24
             },
             "visibleWhen": {
               "ref": "state.chart_mode",
@@ -2962,9 +3424,9 @@
             "widgetId": "annotations_table",
             "gridPos": {
               "x": 0,
-              "y": 27,
+              "y": 32,
               "w": 24,
-              "h": 7
+              "h": 10
             }
           }
         ]

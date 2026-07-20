@@ -1,0 +1,1107 @@
+{
+  "key": "platinum_substage_presence_analytics_v1",
+  "displayName": "Platinum Substage Presence Analytics",
+  "description": "Platinum-label coverage, missing-label analysis, and stage drilldown.",
+  "order": 30,
+  "config": {
+    "updateInterval": "5m",
+    "specVersion": "v2"
+  },
+  "paramsSchema": {
+    "type": "object",
+    "properties": {},
+    "required": []
+  },
+  "filters": [],
+  "charts": [],
+  "spec": {
+    "specVersion": "v2",
+    "theme": {
+      "preset": "corporate"
+    },
+    "state": {
+      "params": {
+        "fleet_name": {
+          "type": "string",
+          "default": null
+        },
+        "pad_name": {
+          "type": "string",
+          "default": null
+        },
+        "well_name": {
+          "type": "string",
+          "default": null
+        },
+        "stage_num": {
+          "type": "string",
+          "default": "-1"
+        }
+      }
+    },
+    "navigation": {
+      "initialView": "main"
+    },
+    "widgets": [
+      {
+        "id": "presence_filters",
+        "title": "Scope",
+        "chrome": {
+          "showActions": false,
+          "hideTitle": true,
+          "padding": 10,
+          "disableCard": false
+        },
+        "renderConfig": {
+          "library": "Custom",
+          "options": {
+            "type": "form",
+            "config": {
+              "schema": {
+                "type": "object",
+                "required": ["fleet_name", "pad_name", "well_name"],
+                "properties": {
+                  "fleet_name": {
+                    "type": "string",
+                    "metadata": {
+                      "ui": {
+                        "label": "Fleet",
+                        "component": "select",
+                        "placeholder": "Select fleet",
+                        "optionsMetric": {
+                          "metricKey": "merged_fleet_options_v1",
+                          "valuePath": "value",
+                          "labelPath": "label"
+                        },
+                        "onChangeEventId": "fleet_changed"
+                      }
+                    }
+                  },
+                  "pad_name": {
+                    "type": "string",
+                    "metadata": {
+                      "ui": {
+                        "label": "Pad",
+                        "component": "select",
+                        "placeholder": "Select pad",
+                        "optionsMetric": {
+                          "metricKey": "merged_pad_options_v1",
+                          "params": {
+                            "fleet_name": "{{form.fleet_name}}"
+                          },
+                          "valuePath": "value",
+                          "labelPath": "label"
+                        },
+                        "onChangeEventId": "pad_changed"
+                      }
+                    }
+                  },
+                  "well_name": {
+                    "type": "string",
+                    "metadata": {
+                      "ui": {
+                        "label": "Well",
+                        "component": "select",
+                        "placeholder": "Select well",
+                        "optionsMetric": {
+                          "metricKey": "merged_well_options_v1",
+                          "params": {
+                            "fleet_name": "{{form.fleet_name}}",
+                            "pad_name": "{{form.pad_name}}"
+                          },
+                          "valuePath": "value",
+                          "labelPath": "label"
+                        },
+                        "onChangeEventId": "well_changed"
+                      }
+                    }
+                  }
+                }
+              },
+              "layout": {
+                "cols": 12,
+                "gap": 10,
+                "rows": [
+                  {
+                    "items": [
+                      {
+                        "type": "field",
+                        "key": "fleet_name",
+                        "colSpan": 3
+                      },
+                      {
+                        "type": "field",
+                        "key": "pad_name",
+                        "colSpan": 3
+                      },
+                      {
+                        "type": "field",
+                        "key": "well_name",
+                        "colSpan": 5
+                      },
+                      {
+                        "type": "button",
+                        "key": "apply_scope",
+                        "colSpan": 1,
+                        "align": "end"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "actions": [
+                {
+                  "id": "apply_scope",
+                  "label": "Apply",
+                  "kind": "submit",
+                  "eventId": "apply_scope",
+                  "ui": {
+                    "color": "primary",
+                    "variant": "solid",
+                    "size": "sm",
+                    "radius": "sm",
+                    "fullWidth": true
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "events": {
+          "fleet_changed": [
+            {
+              "type": "set_form_values",
+              "updates": {
+                "fleet_name": "{{form.fleet_name}}",
+                "pad_name": null,
+                "well_name": null
+              }
+            }
+          ],
+          "pad_changed": [
+            {
+              "type": "set_form_values",
+              "updates": {
+                "fleet_name": "{{form.fleet_name}}",
+                "pad_name": "{{form.pad_name}}",
+                "well_name": null
+              }
+            }
+          ],
+          "well_changed": [
+            {
+              "type": "set_form_values",
+              "updates": {
+                "fleet_name": "{{form.fleet_name}}",
+                "pad_name": "{{form.pad_name}}",
+                "well_name": "{{form.well_name}}"
+              }
+            }
+          ],
+          "apply_scope": [
+            {
+              "type": "set_state",
+              "updates": {
+                "fleet_name": "{{form.fleet_name}}",
+                "pad_name": "{{form.pad_name}}",
+                "well_name": "{{form.well_name}}",
+                "stage_num": "-1"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": "total_stages",
+        "title": "Stages",
+        "chrome": {
+          "showActions": false,
+          "padding": 8,
+          "disableCard": false
+        },
+        "dataConfig": {
+          "total_stages": {
+            "source": "metric",
+            "metricKey": "merged_presence_summary_v1",
+            "fieldName": "total_stages",
+            "bindings": {
+              "query": {
+                "fleet_name": "fleet_name",
+                "pad_name": "pad_name",
+                "well_name": "well_name"
+              },
+              "required": ["fleet_name", "pad_name", "well_name"]
+            }
+          }
+        },
+        "renderConfig": {
+          "library": "Custom",
+          "options": {
+            "type": "stat-v2",
+            "fieldsMap": {
+              "value": "total_stages"
+            },
+            "valueLabel": "Stages",
+            "size": "2xl",
+            "formatTemplate": "{{ value | int }}"
+          }
+        }
+      },
+      {
+        "id": "average_coverage",
+        "title": "Average Coverage",
+        "chrome": {
+          "showActions": false,
+          "padding": 8,
+          "disableCard": false
+        },
+        "dataConfig": {
+          "average_coverage": {
+            "source": "metric",
+            "metricKey": "merged_presence_summary_v1",
+            "fieldName": "average_coverage",
+            "bindings": {
+              "query": {
+                "fleet_name": "fleet_name",
+                "pad_name": "pad_name",
+                "well_name": "well_name"
+              },
+              "required": ["fleet_name", "pad_name", "well_name"]
+            }
+          }
+        },
+        "renderConfig": {
+          "library": "Custom",
+          "options": {
+            "type": "stat-v2",
+            "fieldsMap": {
+              "value": "average_coverage"
+            },
+            "valueLabel": "Average Coverage",
+            "size": "2xl",
+            "formatTemplate": "{{ value }}%",
+            "color": "primary"
+          }
+        }
+      },
+      {
+        "id": "complete_stages",
+        "title": "Complete Stages",
+        "chrome": {
+          "showActions": false,
+          "padding": 8,
+          "disableCard": false
+        },
+        "dataConfig": {
+          "complete_stages": {
+            "source": "metric",
+            "metricKey": "merged_presence_summary_v1",
+            "fieldName": "complete_stages",
+            "bindings": {
+              "query": {
+                "fleet_name": "fleet_name",
+                "pad_name": "pad_name",
+                "well_name": "well_name"
+              },
+              "required": ["fleet_name", "pad_name", "well_name"]
+            }
+          }
+        },
+        "renderConfig": {
+          "library": "Custom",
+          "options": {
+            "type": "stat-v2",
+            "fieldsMap": {
+              "value": "complete_stages"
+            },
+            "valueLabel": "Complete Stages",
+            "size": "2xl",
+            "formatTemplate": "{{ value | int }}",
+            "color": "success"
+          }
+        }
+      },
+      {
+        "id": "aggregate_presence",
+        "title": "All-Wells Aggregate Presence (Single-Row)",
+        "description": "Global share of stages containing each Platinum substage.",
+        "chrome": {
+          "showActions": false,
+          "padding": 8,
+          "disableCard": false
+        },
+        "dataConfig": {
+          "presence": {
+            "source": "metric",
+            "metricKey": "merged_presence_aggregate_v1",
+            "fieldName": "*"
+          }
+        },
+        "renderConfig": {
+          "library": "ReactECharts",
+          "options": {
+            "tooltip": {
+              "trigger": "item"
+            },
+            "grid": {
+              "top": 18,
+              "left": 90,
+              "right": 90,
+              "bottom": 50,
+              "containLabel": true
+            },
+            "xAxis": {
+              "type": "category",
+              "axisLabel": {
+                "interval": 0
+              },
+              "name": "Substage",
+              "nameLocation": "middle",
+              "nameGap": 34
+            },
+            "yAxis": {
+              "type": "category",
+              "name": "Scope",
+              "nameLocation": "middle",
+              "nameGap": 55
+            },
+            "visualMap": {
+              "min": 0,
+              "max": 100,
+              "dimension": 2,
+              "calculable": false,
+              "orient": "vertical",
+              "right": 5,
+              "top": "middle",
+              "text": ["100%", "0%"],
+              "inRange": {
+                "color": ["#EFF6FF", "#6BAED6", "#123B73"]
+              }
+            },
+            "dataset": {
+              "source": "data:dataset",
+              "dimensions": [
+                "presence.substage_label",
+                "presence.scope_label",
+                "presence.presence_percent",
+                "presence.present_count",
+                "presence.total_stages"
+              ]
+            },
+            "series": [
+              {
+                "type": "heatmap",
+                "encode": {
+                  "x": "presence.substage_label",
+                  "y": "presence.scope_label",
+                  "value": "presence.presence_percent",
+                  "tooltip": [
+                    "presence.substage_label",
+                    "presence.presence_percent",
+                    "presence.present_count",
+                    "presence.total_stages"
+                  ]
+                },
+                "label": {
+                  "show": true,
+                  "formatter": "functionString:return params.value[2] + '%'",
+                  "fontSize": 13,
+                  "fontWeight": 600
+                },
+                "itemStyle": {
+                  "borderColor": "#FFFFFF",
+                  "borderWidth": 2
+                }
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "stage_presence_heatmap",
+        "title": "Stage vs Substage Presence",
+        "description": "Presence matrix for every stage in the selected scope.",
+        "chrome": {
+          "showActions": false,
+          "padding": 8,
+          "disableCard": false
+        },
+        "dataConfig": {
+          "cells": {
+            "source": "metric",
+            "metricKey": "merged_presence_cells_v1",
+            "fieldName": "*",
+            "bindings": {
+              "query": {
+                "fleet_name": "fleet_name",
+                "pad_name": "pad_name",
+                "well_name": "well_name"
+              },
+              "required": ["fleet_name", "pad_name", "well_name"]
+            }
+          }
+        },
+        "renderConfig": {
+          "library": "ReactECharts",
+          "options": {
+            "tooltip": {
+              "trigger": "item"
+            },
+            "grid": {
+              "top": 20,
+              "left": 90,
+              "right": 30,
+              "bottom": 70
+            },
+            "xAxis": {
+              "type": "category",
+              "name": "Stage",
+              "axisLabel": {
+                "rotate": 45,
+                "hideOverlap": true
+              },
+              "splitArea": {
+                "show": true
+              }
+            },
+            "yAxis": {
+              "type": "category",
+              "name": "Substage",
+              "splitArea": {
+                "show": true
+              }
+            },
+            "dataZoom": [
+              {
+                "type": "inside",
+                "xAxisIndex": 0
+              },
+              {
+                "type": "slider",
+                "xAxisIndex": 0,
+                "bottom": 10,
+                "height": 18
+              }
+            ],
+            "visualMap": {
+              "type": "piecewise",
+              "show": false,
+              "dimension": 2,
+              "pieces": [
+                {
+                  "value": 0,
+                  "label": "Missing",
+                  "color": "#F4B8B8"
+                },
+                {
+                  "value": 1,
+                  "label": "Present",
+                  "color": "#2A9D8F"
+                }
+              ]
+            },
+            "dataset": {
+              "source": "data:dataset",
+              "dimensions": [
+                "cells.stage_label",
+                "cells.substage_label",
+                "cells.presence_value",
+                "cells.well_name",
+                "cells.stage_num"
+              ]
+            },
+            "series": [
+              {
+                "type": "heatmap",
+                "progressive": 5000,
+                "encode": {
+                  "x": "cells.stage_label",
+                  "y": "cells.substage_label",
+                  "value": "cells.presence_value",
+                  "tooltip": [
+                    "cells.well_name",
+                    "cells.stage_num",
+                    "cells.substage_label",
+                    "cells.presence_value"
+                  ]
+                },
+                "itemStyle": {
+                  "borderColor": "#FFFFFF",
+                  "borderWidth": 2
+                }
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "missing_substages",
+        "title": "Missing Required Substages",
+        "description": "Missing required labels per stage; Shut-Off is optional.",
+        "chrome": {
+          "showActions": false,
+          "padding": 8,
+          "disableCard": false
+        },
+        "dataConfig": {
+          "stages": {
+            "source": "metric",
+            "metricKey": "merged_presence_stage_rows_v1",
+            "fieldName": "*",
+            "bindings": {
+              "query": {
+                "fleet_name": "fleet_name",
+                "pad_name": "pad_name",
+                "well_name": "well_name"
+              },
+              "required": ["fleet_name", "pad_name", "well_name"]
+            }
+          }
+        },
+        "renderConfig": {
+          "library": "ReactECharts",
+          "options": {
+            "tooltip": {
+              "trigger": "item"
+            },
+            "grid": {
+              "top": 20,
+              "left": 55,
+              "right": 20,
+              "bottom": 70
+            },
+            "xAxis": {
+              "type": "category",
+              "name": "Stage",
+              "axisLabel": {
+                "rotate": 45,
+                "hideOverlap": true
+              }
+            },
+            "yAxis": {
+              "type": "value",
+              "name": "Missing",
+              "min": 0,
+              "max": 5
+            },
+            "dataZoom": [
+              {
+                "type": "inside",
+                "xAxisIndex": 0
+              },
+              {
+                "type": "slider",
+                "xAxisIndex": 0,
+                "bottom": 10,
+                "height": 18
+              }
+            ],
+            "dataset": {
+              "source": "data:dataset",
+              "dimensions": [
+                "stages.stage_label",
+                "stages.missing_count",
+                "stages.well_name",
+                "stages.stage_num",
+                "stages.missing_substages"
+              ]
+            },
+            "series": [
+              {
+                "type": "bar",
+                "encode": {
+                  "x": "stages.stage_label",
+                  "y": "stages.missing_count",
+                  "tooltip": [
+                    "stages.well_name",
+                    "stages.stage_num",
+                    "stages.missing_count",
+                    "stages.missing_substages"
+                  ]
+                },
+                "itemStyle": {
+                  "color": "#DC5A5A"
+                },
+                "barMaxWidth": 20,
+                "barMinHeight": 3,
+                "label": {
+                  "show": true,
+                  "position": "top"
+                }
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "stage_summary",
+        "title": "Stage Summary",
+        "chrome": {
+          "showActions": false,
+          "padding": 8,
+          "disableCard": false
+        },
+        "dataConfig": {
+          "stages": {
+            "source": "metric",
+            "metricKey": "merged_presence_stage_rows_v1",
+            "fieldName": "*",
+            "bindings": {
+              "query": {
+                "fleet_name": "fleet_name",
+                "pad_name": "pad_name",
+                "well_name": "well_name"
+              },
+              "required": ["fleet_name", "pad_name", "well_name"]
+            }
+          }
+        },
+        "renderConfig": {
+          "library": "Custom",
+          "options": {
+            "type": "table",
+            "config": {
+              "columns": [
+                {
+                  "key": "well_name",
+                  "label": "Well",
+                  "minWidth": 220,
+                  "truncate": true
+                },
+                {
+                  "key": "stage_num",
+                  "label": "Stage",
+                  "minWidth": 80
+                },
+                {
+                  "key": "coverage_percent",
+                  "label": "Coverage %",
+                  "minWidth": 110
+                },
+                {
+                  "key": "missing_count",
+                  "label": "Missing",
+                  "minWidth": 90
+                },
+                {
+                  "key": "stage_start",
+                  "label": "Start",
+                  "minWidth": 80
+                },
+                {
+                  "key": "ramp_up",
+                  "label": "Ramp Up",
+                  "minWidth": 90
+                },
+                {
+                  "key": "design",
+                  "label": "Design",
+                  "minWidth": 80
+                },
+                {
+                  "key": "ramp_down",
+                  "label": "Ramp Down",
+                  "minWidth": 100
+                },
+                {
+                  "key": "shut_off",
+                  "label": "Shut-Off",
+                  "minWidth": 90
+                },
+                {
+                  "key": "stage_end",
+                  "label": "End",
+                  "minWidth": 80
+                },
+                {
+                  "key": "missing_substages",
+                  "label": "Missing Substages",
+                  "minWidth": 240,
+                  "truncate": true
+                }
+              ],
+              "dataset": {
+                "source": "data:dataset",
+                "dimensions": [
+                  "stages.well_name",
+                  "stages.stage_num",
+                  "stages.coverage_percent",
+                  "stages.missing_count",
+                  "stages.stage_start",
+                  "stages.ramp_up",
+                  "stages.design",
+                  "stages.ramp_down",
+                  "stages.shut_off",
+                  "stages.stage_end",
+                  "stages.missing_substages"
+                ]
+              },
+              "pagination": {
+                "pageSize": 25
+              }
+            },
+            "ui": {
+              "variant": "bordered",
+              "borderStyle": "all",
+              "enablePagination": true,
+              "rowsPerPage": 25,
+              "maxBodyHeight": 420,
+              "stickyHeader": true,
+              "cellHeight": "sm"
+            }
+          }
+        }
+      },
+      {
+        "id": "drilldown_stage_filter",
+        "title": "Stage Drilldown",
+        "chrome": {
+          "showActions": false,
+          "hideTitle": true,
+          "padding": 8,
+          "disableCard": false
+        },
+        "renderConfig": {
+          "library": "Custom",
+          "options": {
+            "type": "select",
+            "config": {
+              "placeholder": "Select stage for drilldown",
+              "selectionMode": "single",
+              "optionsMetric": {
+                "metricKey": "merged_presence_stage_options_v1",
+                "params": {
+                  "well_name": "{{state.well_name}}"
+                },
+                "required": ["well_name"],
+                "valuePath": "value",
+                "labelPath": "label"
+              },
+              "value": "{{state.stage_num}}"
+            },
+            "ui": {
+              "size": "sm",
+              "variant": "bordered",
+              "radius": "sm",
+              "fullWidth": false,
+              "width": 320
+            }
+          }
+        },
+        "events": {
+          "onChange": [
+            {
+              "type": "set_state",
+              "updates": {
+                "stage_num": "{{event.lastSelectedValue}}"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": "stage_drilldown",
+        "title": "Platinum Stage Drilldown",
+        "description": "Raw telemetry with automatic Platinum substage windows.",
+        "isDataLarge": true,
+        "chrome": {
+          "showActions": false,
+          "padding": 8,
+          "disableCard": false
+        },
+        "dataConfig": {
+          "chart_data": {
+            "source": "metric",
+            "metricKey": "merged_presence_stage_drilldown_v1",
+            "fieldName": "*",
+            "bindings": {
+              "query": {
+                "well_name": "well_name",
+                "stage_num": "stage_num"
+              },
+              "required": ["well_name", "stage_num"]
+            }
+          },
+          "windows": {
+            "source": "metric",
+            "metricKey": "merged_presence_stage_windows_v1",
+            "fieldName": "*",
+            "bindings": {
+              "query": {
+                "well_name": "well_name",
+                "stage_num": "stage_num"
+              },
+              "required": ["well_name", "stage_num"]
+            }
+          }
+        },
+        "renderConfig": {
+          "library": "Custom",
+          "options": {
+            "type": "enhanced-echart",
+            "config": {
+              "chartId": "presence_stage_drilldown",
+              "option": {
+                "grid": {
+                  "top": 35,
+                  "left": 80,
+                  "right": 130,
+                  "bottom": 70,
+                  "containLabel": true
+                },
+                "xAxis": {
+                  "id": "X",
+                  "type": "time",
+                  "name": "Time",
+                  "axisLabel": {
+                    "formatter": "{HH}:{mm}",
+                    "rotate": 30
+                  }
+                },
+                "yAxis": [
+                  {
+                    "id": "Y_pressure",
+                    "type": "value",
+                    "name": "Pressure",
+                    "position": "left"
+                  },
+                  {
+                    "id": "Y_rate",
+                    "type": "value",
+                    "name": "Rate",
+                    "position": "right"
+                  },
+                  {
+                    "id": "Y_conc",
+                    "type": "value",
+                    "name": "Concentration",
+                    "position": "right",
+                    "offset": 60
+                  }
+                ],
+                "tooltip": {
+                  "trigger": "axis",
+                  "axisPointer": {
+                    "type": "cross"
+                  }
+                },
+                "dataZoom": [
+                  {
+                    "type": "inside",
+                    "xAxisIndex": 0,
+                    "filterMode": "none"
+                  },
+                  {
+                    "type": "slider",
+                    "xAxisIndex": 0,
+                    "bottom": 10,
+                    "height": 18,
+                    "filterMode": "none"
+                  }
+                ],
+                "dataset": [
+                  {
+                    "source": "data:dataset",
+                    "dimensions": [
+                      "chart_data.timestamp",
+                      "chart_data.press_mainline",
+                      "chart_data.rate_slurry",
+                      "chart_data.selected_concentration"
+                    ]
+                  }
+                ],
+                "series": [
+                  {
+                    "name": "Pressure",
+                    "type": "line",
+                    "datasetIndex": 0,
+                    "xAxisId": "X",
+                    "yAxisId": "Y_pressure",
+                    "showSymbol": false,
+                    "sampling": "lttb",
+                    "encode": {
+                      "x": "chart_data.timestamp",
+                      "y": "chart_data.press_mainline"
+                    },
+                    "lineStyle": {
+                      "width": 1.5
+                    },
+                    "color": "#F33F75"
+                  },
+                  {
+                    "name": "Rate",
+                    "type": "line",
+                    "datasetIndex": 0,
+                    "xAxisId": "X",
+                    "yAxisId": "Y_rate",
+                    "showSymbol": false,
+                    "sampling": "lttb",
+                    "encode": {
+                      "x": "chart_data.timestamp",
+                      "y": "chart_data.rate_slurry"
+                    },
+                    "lineStyle": {
+                      "width": 1.5
+                    },
+                    "color": "#4B4ED6"
+                  },
+                  {
+                    "name": "Concentration",
+                    "type": "line",
+                    "datasetIndex": 0,
+                    "xAxisId": "X",
+                    "yAxisId": "Y_conc",
+                    "showSymbol": false,
+                    "sampling": "lttb",
+                    "encode": {
+                      "x": "chart_data.timestamp",
+                      "y": "chart_data.selected_concentration"
+                    },
+                    "lineStyle": {
+                      "width": 1.5
+                    },
+                    "color": "#E6982E"
+                  },
+                  {
+                    "name": "Platinum Windows",
+                    "type": "line",
+                    "data": [],
+                    "xAxisId": "X",
+                    "yAxisId": "Y_pressure",
+                    "symbol": "none",
+                    "lineStyle": {
+                      "opacity": 0
+                    },
+                    "markArea": {
+                      "silent": true,
+                      "data": "function:windowMarkAreaV2(data=data:windows, labelField=substage_label, startField=start_ts, endField=end_ts, colorField=color)"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    ],
+    "views": [
+      {
+        "id": "main",
+        "title": "Platinum Substage Presence Analytics",
+        "presentation": {
+          "type": "page",
+          "gridMargin": [12, 8]
+        },
+        "layout": [
+          {
+            "instanceId": "aggregate_presence_main",
+            "widgetId": "aggregate_presence",
+            "gridPos": {
+              "x": 0,
+              "y": 0,
+              "w": 24,
+              "h": 7
+            }
+          },
+          {
+            "instanceId": "presence_filters_main",
+            "widgetId": "presence_filters",
+            "gridPos": {
+              "x": 0,
+              "y": 7,
+              "w": 24,
+              "h": 3
+            }
+          },
+          {
+            "instanceId": "total_stages_main",
+            "widgetId": "total_stages",
+            "gridPos": {
+              "x": 0,
+              "y": 10,
+              "w": 8,
+              "h": 3
+            }
+          },
+          {
+            "instanceId": "average_coverage_main",
+            "widgetId": "average_coverage",
+            "gridPos": {
+              "x": 8,
+              "y": 10,
+              "w": 8,
+              "h": 3
+            }
+          },
+          {
+            "instanceId": "complete_stages_main",
+            "widgetId": "complete_stages",
+            "gridPos": {
+              "x": 16,
+              "y": 10,
+              "w": 8,
+              "h": 3
+            }
+          },
+          {
+            "instanceId": "drilldown_stage_filter_main",
+            "widgetId": "drilldown_stage_filter",
+            "gridPos": {
+              "x": 0,
+              "y": 13,
+              "w": 24,
+              "h": 3
+            }
+          },
+          {
+            "instanceId": "stage_drilldown_main",
+            "widgetId": "stage_drilldown",
+            "gridPos": {
+              "x": 0,
+              "y": 16,
+              "w": 24,
+              "h": 18
+            },
+            "visibleWhen": [
+              {
+                "ref": "state.stage_num",
+                "op": "ne",
+                "value": "-1"
+              }
+            ]
+          },
+          {
+            "instanceId": "stage_presence_heatmap_main",
+            "widgetId": "stage_presence_heatmap",
+            "gridPos": {
+              "x": 0,
+              "y": 34,
+              "w": 16,
+              "h": 14
+            }
+          },
+          {
+            "instanceId": "missing_substages_main",
+            "widgetId": "missing_substages",
+            "gridPos": {
+              "x": 16,
+              "y": 34,
+              "w": 8,
+              "h": 14
+            }
+          },
+          {
+            "instanceId": "stage_summary_main",
+            "widgetId": "stage_summary",
+            "gridPos": {
+              "x": 0,
+              "y": 48,
+              "w": 24,
+              "h": 12
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

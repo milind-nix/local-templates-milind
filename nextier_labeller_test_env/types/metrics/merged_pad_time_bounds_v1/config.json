@@ -1,0 +1,41 @@
+{
+  "key": "merged_pad_time_bounds_v1",
+  "displayName": "Merged Pad Time Bounds",
+  "description": "Start and end timestamps for all wells in a selected merged fleet/pad.",
+  "sql": "SELECT * FROM (SELECT COALESCE(NULLIF(fleet_name, ''), 'Unknown') AS fleet_name, COALESCE(NULLIF(pad_name, ''), 'Unknown') AS pad_name, MIN(first_record_ts) AS start_time, MAX(last_record_ts) AS end_time FROM featurestore:merged_well_index_v1 WHERE COALESCE(NULLIF(fleet_name, ''), 'Unknown') = :fleet_name AND COALESCE(NULLIF(pad_name, ''), 'Unknown') = :pad_name GROUP BY COALESCE(NULLIF(fleet_name, ''), 'Unknown'), COALESCE(NULLIF(pad_name, ''), 'Unknown')) q",
+  "valueSchema": {
+    "type": "object",
+    "properties": {
+      "fleet_name": {
+        "type": "string"
+      },
+      "pad_name": {
+        "type": "string"
+      },
+      "start_time": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "end_time": {
+        "type": "string",
+        "format": "date-time"
+      }
+    },
+    "required": []
+  },
+  "paramsSchema": {
+    "type": "object",
+    "properties": {
+      "fleet_name": {
+        "type": "string"
+      },
+      "pad_name": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "fleet_name",
+      "pad_name"
+    ]
+  }
+}

@@ -1,0 +1,73 @@
+{
+  "key": "merged_anomaly_tuning_counts_v1",
+  "displayName": "Merged Anomaly Tuning Counts",
+  "description": "Compact per-stage segment counts for supported anomaly thresholds and rolling windows.",
+  "sql": "SELECT CAST(NULL AS TEXT) AS fleet_name, CAST(NULL AS TEXT) AS pad_name, CAST(NULL AS TEXT) AS name, CAST(NULL AS DOUBLE PRECISION) AS stage_num_td, CAST(NULL AS BIGINT) AS rolling_points, CAST(NULL AS TEXT) AS threshold_type, CAST(NULL AS DOUBLE PRECISION) AS threshold_value, CAST(NULL AS BIGINT) AS segment_count, CAST(NULL AS TEXT) AS source_signature, CAST(NULL AS TEXT) AS algorithm_version, CAST(NULL AS TEXT) AS updated_at FROM datastore:merged_fleet_stream_customer_full_v2 WHERE 1 = 0",
+  "checkpoint_fields": [],
+  "upsert": true,
+  "dataSchema": {
+    "type": "object",
+    "properties": {
+      "fleet_name": {
+        "type": "string"
+      },
+      "pad_name": {
+        "type": "string"
+      },
+      "name": {
+        "type": "string",
+        "metadata": {
+          "isPrimaryKey": true
+        }
+      },
+      "stage_num_td": {
+        "type": "number",
+        "metadata": {
+          "isPrimaryKey": true
+        }
+      },
+      "rolling_points": {
+        "type": "bigint",
+        "metadata": {
+          "isPrimaryKey": true
+        }
+      },
+      "threshold_type": {
+        "type": "string",
+        "metadata": {
+          "isPrimaryKey": true
+        }
+      },
+      "threshold_value": {
+        "type": "number",
+        "metadata": {
+          "isPrimaryKey": true
+        }
+      },
+      "segment_count": {
+        "type": "bigint"
+      },
+      "source_signature": {
+        "type": "string"
+      },
+      "algorithm_version": {
+        "type": "string",
+        "metadata": {
+          "isPrimaryKey": true
+        }
+      },
+      "updated_at": {
+        "type": "string",
+        "format": "date-time"
+      }
+    },
+    "required": [
+      "name",
+      "stage_num_td",
+      "rolling_points",
+      "threshold_type",
+      "threshold_value",
+      "algorithm_version"
+    ]
+  }
+}

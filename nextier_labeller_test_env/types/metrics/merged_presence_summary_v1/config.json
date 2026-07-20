@@ -1,0 +1,40 @@
+{
+  "key": "merged_presence_summary_v1",
+  "displayName": "Merged Platinum Presence Summary",
+  "description": "Scope-level stage count, average coverage, and complete-stage count.",
+  "sql": "SELECT * FROM (WITH scoped_wells AS (\n  SELECT DISTINCT name\n  FROM featurestore:merged_well_index_v1\n  WHERE COALESCE(NULLIF(fleet_name, ''), 'Unknown') = :fleet_name\n    AND COALESCE(NULLIF(pad_name, ''), 'Unknown') = :pad_name\n    AND (CAST(:well_name AS TEXT) IN ('', '__ALL__') OR name = :well_name)\n),\nlabel_presence AS (\n  SELECT\n    p.name AS well_name,\n    p.stage_num_td AS stage_num,\n    MAX(CASE WHEN LOWER(p.substage) = 'stage_start' THEN 1 ELSE 0 END) AS stage_start,\n    MAX(CASE WHEN LOWER(p.substage) = 'ramp_up' THEN 1 ELSE 0 END) AS ramp_up,\n    MAX(CASE WHEN LOWER(p.substage) IN ('design', 'slurry') THEN 1 ELSE 0 END) AS design,\n    MAX(CASE WHEN LOWER(p.substage) = 'ramp_down' THEN 1 ELSE 0 END) AS ramp_down,\n    MAX(CASE WHEN LOWER(p.substage) IN ('shut_off', 'shutoff', 'shut_off_period') THEN 1 ELSE 0 END) AS shut_off,\n    MAX(CASE WHEN LOWER(p.substage) = 'stage_end' THEN 1 ELSE 0 END) AS stage_end\n  FROM featurestore:merged_platinum_labels_v1 p\n  JOIN scoped_wells w ON w.name = p.name\n  WHERE p.stage_num_td IS NOT NULL\n    AND p.substage IS NOT NULL\n    AND LOWER(p.substage) <> 'na'\n  GROUP BY p.name, p.stage_num_td\n),\npresence AS (\n  SELECT\n    well_name,\n    stage_num,\n    stage_start,\n    ramp_up,\n    design,\n    ramp_down,\n    shut_off,\n    stage_end\n  FROM label_presence\n),\nscored AS (\n  SELECT\n    *,\n    stage_start + ramp_up + design + ramp_down + stage_end AS present_required,\n    5 - (stage_start + ramp_up + design + ramp_down + stage_end) AS missing_count\n  FROM presence\n)\nSELECT\n  COUNT(*) AS total_stages,\n  ROUND(COALESCE(AVG(present_required * 100.0 / 5.0), 0)::numeric, 1) AS average_coverage,\n  COALESCE(SUM(CASE WHEN missing_count = 0 THEN 1 ELSE 0 END), 0) AS complete_stages\nFROM scored\n) q",
+  "valueSchema": {
+    "type": "object",
+    "properties": {
+      "total_stages": {
+        "type": "number"
+      },
+      "average_coverage": {
+        "type": "number"
+      },
+      "complete_stages": {
+        "type": "number"
+      }
+    },
+    "required": []
+  },
+  "paramsSchema": {
+    "type": "object",
+    "properties": {
+      "fleet_name": {
+        "type": "string"
+      },
+      "pad_name": {
+        "type": "string"
+      },
+      "well_name": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "fleet_name",
+      "pad_name",
+      "well_name"
+    ]
+  }
+}

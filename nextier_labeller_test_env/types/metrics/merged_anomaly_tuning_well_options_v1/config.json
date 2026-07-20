@@ -1,0 +1,36 @@
+{
+  "key": "merged_anomaly_tuning_well_options_v1",
+  "displayName": "Merged Anomaly Tuning Well Options",
+  "description": "All-wells option and wells for the selected fleet and pad.",
+  "sql": "SELECT * FROM (\nSELECT '__ALL__' AS value, 'All wells' AS label, 0 AS sort_order\nUNION ALL\nSELECT name AS value, name AS label, 1 AS sort_order\nFROM featurestore:merged_well_index_v1\nWHERE COALESCE(NULLIF(fleet_name, ''), 'Unknown') = :fleet_name\n  AND COALESCE(NULLIF(pad_name, ''), 'Unknown') = :pad_name\nORDER BY sort_order, label\n) q",
+  "valueSchema": {
+    "type": "object",
+    "properties": {
+      "value": {
+        "type": "string"
+      },
+      "label": {
+        "type": "string"
+      },
+      "sort_order": {
+        "type": "number"
+      }
+    },
+    "required": []
+  },
+  "paramsSchema": {
+    "type": "object",
+    "properties": {
+      "fleet_name": {
+        "type": "string"
+      },
+      "pad_name": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "fleet_name",
+      "pad_name"
+    ]
+  }
+}

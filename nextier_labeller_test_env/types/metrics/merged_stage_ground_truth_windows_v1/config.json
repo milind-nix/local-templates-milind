@@ -1,0 +1,50 @@
+{
+  "key": "merged_stage_ground_truth_windows_v1",
+  "displayName": "Merged Stage Ground Truth Windows",
+  "description": "Ground-truth stage_num windows from the existing stage index for a selected well.",
+  "sql": "SELECT * FROM (   SELECT     'Stage ' || CAST(stage_num AS text) AS window_label,     CAST(stage_start_ts AS timestamp) AS start_ts,     CAST(stage_end_ts AS timestamp) AS end_ts,     '#228B22' AS color,     sample_count   FROM featurestore:stage_index_v1   WHERE name = :well_name     AND stage_start_ts IS NOT NULL     AND stage_end_ts IS NOT NULL     AND CAST(stage_end_ts AS timestamp) >= (:start_time)::timestamp     AND CAST(stage_start_ts AS timestamp) <= (:end_time)::timestamp   ORDER BY CAST(stage_start_ts AS timestamp) ) q",
+  "valueSchema": {
+    "type": "object",
+    "properties": {
+      "window_label": {
+        "type": "string"
+      },
+      "start_ts": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "end_ts": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "color": {
+        "type": "string"
+      },
+      "sample_count": {
+        "type": "number"
+      }
+    },
+    "required": []
+  },
+  "paramsSchema": {
+    "type": "object",
+    "properties": {
+      "well_name": {
+        "type": "string"
+      },
+      "start_time": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "end_time": {
+        "type": "string",
+        "format": "date-time"
+      }
+    },
+    "required": [
+      "well_name",
+      "start_time",
+      "end_time"
+    ]
+  }
+}

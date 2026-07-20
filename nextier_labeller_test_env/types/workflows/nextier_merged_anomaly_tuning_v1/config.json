@@ -1,0 +1,65 @@
+{
+  "key": "nextier_merged_anomaly_tuning_v1",
+  "displayName": "Nextier Merged Anomaly Tuning v1",
+  "description": "Incrementally precomputes compact threshold-tuning counts using the canonical nextier-dash delta detector.",
+  "runtime": "prefect",
+  "flow": {
+    "entrypoint": "scripts/workflows/nextier_merged_anomaly_tuning_v1/main.py:nextier_merged_anomaly_tuning_v1_flow",
+    "include": [
+      "scripts/workflows/nextier_merged_anomaly_tuning_v1/**/*.py"
+    ],
+    "tags": [
+      "nextier",
+      "merged",
+      "anomaly",
+      "tuning"
+    ]
+  },
+  "deployment": {
+    "workPool": "default",
+    "timezone": "UTC",
+    "concurrencyLimit": 1,
+    "parameters": {
+      "mode": "incremental",
+      "max_stages": 10,
+      "algorithm_version": "tuning-v1",
+      "dry_run": false
+    }
+  },
+  "paramsSchema": {
+    "type": "object",
+    "properties": {
+      "mode": {
+        "type": "string",
+        "enum": [
+          "incremental",
+          "historical",
+          "rebuild"
+        ],
+        "default": "incremental"
+      },
+      "max_stages": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 100,
+        "default": 10
+      },
+      "well_name": {
+        "type": "string"
+      },
+      "stage_num_td": {
+        "type": "number"
+      },
+      "algorithm_version": {
+        "type": "string",
+        "default": "tuning-v1"
+      },
+      "dry_run": {
+        "type": "boolean",
+        "default": false
+      }
+    },
+    "required": []
+  },
+  "initialState": {}
+}

@@ -1,0 +1,72 @@
+{
+  "key": "merged_stage_execution_stages_v1",
+  "displayName": "Merged Stage Execution Ranking",
+  "description": "Scoped per-stage score ranking and component values.",
+  "sql": "SELECT * FROM (\nSELECT\n  s.name AS well_name,\n  CAST(s.stage_num_td AS TEXT) AS stage_num,\n  s.composite_score,\n  s.score_a,\n  s.score_b,\n  s.score_c,\n  s.score_d,\n  CASE s.top_driver\n    WHEN 'process_stability' THEN 'Process Stability'\n    WHEN 'anomaly_burden' THEN 'Event Burden'\n    WHEN 'substage_coherence' THEN 'Substage Coherence'\n    WHEN 'achievable_telemetry' THEN 'Achievable Telemetry'\n    ELSE s.top_driver\n  END AS top_driver,\n  s.anomaly_count,\n  s.substages_present,\n  s.design_minutes\nFROM featurestore:merged_stage_execution_scores_v1 s\nWHERE s.formula_version = :formula_version\n  AND s.normalization_version = :normalization_version\n  AND s.fleet_name = :fleet_name\n  AND s.pad_name = :pad_name\n  AND (\n    COALESCE(CAST(:well_name AS TEXT), '') IN ('', '__ALL__')\n    OR s.name = CAST(:well_name AS TEXT)\n  )\nORDER BY s.composite_score, s.name, s.stage_num_td\n) q",
+  "valueSchema": {
+    "type": "object",
+    "properties": {
+      "well_name": {
+        "type": "string"
+      },
+      "stage_num": {
+        "type": "string"
+      },
+      "composite_score": {
+        "type": "number"
+      },
+      "score_a": {
+        "type": "number"
+      },
+      "score_b": {
+        "type": "number"
+      },
+      "score_c": {
+        "type": "number"
+      },
+      "score_d": {
+        "type": "number"
+      },
+      "top_driver": {
+        "type": "string"
+      },
+      "anomaly_count": {
+        "type": "number"
+      },
+      "substages_present": {
+        "type": "bigint"
+      },
+      "design_minutes": {
+        "type": "number"
+      }
+    },
+    "required": []
+  },
+  "paramsSchema": {
+    "type": "object",
+    "properties": {
+      "fleet_name": {
+        "type": "string"
+      },
+      "pad_name": {
+        "type": "string"
+      },
+      "well_name": {
+        "type": "string"
+      },
+      "formula_version": {
+        "type": "string"
+      },
+      "normalization_version": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "fleet_name",
+      "pad_name",
+      "well_name",
+      "formula_version",
+      "normalization_version"
+    ]
+  }
+}

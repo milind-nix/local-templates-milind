@@ -1,0 +1,49 @@
+{
+  "key": "merged_anomaly_tuning_manifest_v1",
+  "displayName": "Merged Anomaly Tuning Manifest",
+  "description": "Completed tuning cache signature and row count per stage.",
+  "sql": "SELECT CAST(NULL AS TEXT) AS name, CAST(NULL AS DOUBLE PRECISION) AS stage_num_td, CAST(NULL AS TEXT) AS algorithm_version, CAST(NULL AS TEXT) AS source_signature, CAST(NULL AS BIGINT) AS tuning_rows, CAST(NULL AS TEXT) AS processed_at, CAST(NULL AS TEXT) AS status FROM datastore:merged_fleet_stream_customer_full_v2 WHERE 1 = 0",
+  "checkpoint_fields": [],
+  "upsert": true,
+  "dataSchema": {
+    "type": "object",
+    "properties": {
+      "name": {
+        "type": "string",
+        "metadata": {
+          "isPrimaryKey": true
+        }
+      },
+      "stage_num_td": {
+        "type": "number",
+        "metadata": {
+          "isPrimaryKey": true
+        }
+      },
+      "algorithm_version": {
+        "type": "string",
+        "metadata": {
+          "isPrimaryKey": true
+        }
+      },
+      "source_signature": {
+        "type": "string"
+      },
+      "tuning_rows": {
+        "type": "bigint"
+      },
+      "processed_at": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "status": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "name",
+      "stage_num_td",
+      "algorithm_version"
+    ]
+  }
+}

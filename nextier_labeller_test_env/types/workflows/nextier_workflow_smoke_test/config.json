@@ -1,6 +1,6 @@
 {
   "key": "nextier_workflow_smoke_test",
-  "displayName": "Nextier Workflow Smoke Test 2",
+  "displayName": "Nextier Workflow Smoke Test",
   "description": "Minimal Prefect workflow used to verify workflow deployment and triggering in the Nextier test environment.",
   "runtime": "prefect",
   "flow": {

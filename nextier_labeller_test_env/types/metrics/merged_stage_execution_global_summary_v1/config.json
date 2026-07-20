@@ -1,0 +1,42 @@
+{
+  "key": "merged_stage_execution_global_summary_v1",
+  "displayName": "Merged Stage Execution Global Summary",
+  "description": "Global KPIs across the canonical Stage Execution scoring population.",
+  "sql": "SELECT * FROM (\nWITH population AS (\n  SELECT *\n  FROM featurestore:merged_stage_execution_scores_v1 s\n  WHERE s.formula_version = :formula_version\nAND s.normalization_version = :normalization_version\n),\nlowest AS (\n  SELECT name, stage_num_td, composite_score\n  FROM population\n  ORDER BY composite_score, name, stage_num_td\n  LIMIT 1\n)\nSELECT\n  COALESCE(ROUND(AVG(composite_score)::numeric, 1), 0) AS average_score,\n  COUNT(*)::bigint AS stages_scored,\n  COALESCE(MIN(composite_score), 0) AS lowest_score,\n  COALESCE((SELECT name FROM lowest), '') AS lowest_well,\n  COALESCE((SELECT stage_num_td FROM lowest), 0) AS lowest_stage\nFROM population\n) q",
+  "valueSchema": {
+    "type": "object",
+    "properties": {
+      "average_score": {
+        "type": "number"
+      },
+      "stages_scored": {
+        "type": "bigint"
+      },
+      "lowest_score": {
+        "type": "number"
+      },
+      "lowest_well": {
+        "type": "string"
+      },
+      "lowest_stage": {
+        "type": "number"
+      }
+    },
+    "required": []
+  },
+  "paramsSchema": {
+    "type": "object",
+    "properties": {
+      "formula_version": {
+        "type": "string"
+      },
+      "normalization_version": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "formula_version",
+      "normalization_version"
+    ]
+  }
+}

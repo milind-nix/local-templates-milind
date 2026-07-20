@@ -1,0 +1,50 @@
+{
+  "key": "merged_stage_execution_breakdown_v1",
+  "displayName": "Merged Stage Execution Component Breakdown",
+  "description": "Long-form component scores and weighted contribution for one stage.",
+  "sql": "SELECT * FROM (\nWITH selected AS (\n  SELECT *\n  FROM featurestore:merged_stage_execution_scores_v1\n  WHERE name = :well_name\n    AND stage_num_td = CAST(:stage_num AS DOUBLE PRECISION)\n    AND formula_version = :formula_version\n    AND normalization_version = :normalization_version\n  LIMIT 1\n)\nSELECT 'A - Process Stability' AS component, score_a AS score, 0.20 AS weight,\n       score_a * 0.20 AS weighted_contribution, '#2878B5' AS color FROM selected\nUNION ALL\nSELECT 'B - Event Burden', score_b, 0.36, score_b * 0.36, '#D35400' FROM selected\nUNION ALL\nSELECT 'C - Substage Coherence', score_c, 0.16, score_c * 0.16, '#2A9D6F' FROM selected\nUNION ALL\nSELECT 'D - Achievable Telemetry', score_d, 0.28, score_d * 0.28, '#7A5AF8' FROM selected\n) q",
+  "valueSchema": {
+    "type": "object",
+    "properties": {
+      "component": {
+        "type": "string"
+      },
+      "score": {
+        "type": "number"
+      },
+      "weight": {
+        "type": "number"
+      },
+      "weighted_contribution": {
+        "type": "number"
+      },
+      "color": {
+        "type": "string"
+      }
+    },
+    "required": []
+  },
+  "paramsSchema": {
+    "type": "object",
+    "properties": {
+      "well_name": {
+        "type": "string"
+      },
+      "stage_num": {
+        "type": "string"
+      },
+      "formula_version": {
+        "type": "string"
+      },
+      "normalization_version": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "well_name",
+      "stage_num",
+      "formula_version",
+      "normalization_version"
+    ]
+  }
+}

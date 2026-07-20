@@ -1,0 +1,44 @@
+{
+  "key": "merged_presence_stage_windows_v1",
+  "displayName": "Merged Presence Stage Platinum Windows",
+  "description": "Contiguous Platinum substage windows for the selected presence drilldown.",
+  "sql": "SELECT * FROM (\nWITH base AS (\n  SELECT\n    CASE WHEN LOWER(substage) = 'design' THEN 'slurry' ELSE LOWER(substage) END AS substage_label,\n    CAST(datetime_fmt AS timestamp) AS ts\n  FROM featurestore:merged_platinum_labels_v1\n  WHERE name = :well_name\n    AND stage_num_td = CAST(:stage_num AS DOUBLE PRECISION)\n    AND datetime_fmt IS NOT NULL\n    AND substage IS NOT NULL\n    AND LOWER(substage) <> 'na'\n),\nmarked AS (\n  SELECT\n    substage_label,\n    ts,\n    CASE WHEN LAG(substage_label) OVER (ORDER BY ts) IS DISTINCT FROM substage_label THEN 1 ELSE 0 END AS is_new_group\n  FROM base\n),\ngrouped AS (\n  SELECT\n    substage_label,\n    ts,\n    SUM(is_new_group) OVER (ORDER BY ts ROWS UNBOUNDED PRECEDING) AS group_id\n  FROM marked\n)\nSELECT\n  substage_label,\n  MIN(ts) AS start_ts,\n  MAX(ts) AS end_ts,\n  CASE substage_label\n    WHEN 'stage_start' THEN '#5B5FC7'\n    WHEN 'ramp_up' THEN '#D64B8B'\n    WHEN 'slurry' THEN '#3BA66B'\n    WHEN 'ramp_down' THEN '#D9902F'\n    WHEN 'shut_off' THEN '#9A4C8D'\n    WHEN 'stage_end' THEN '#4AA8B5'\n    ELSE '#7A8496'\n  END AS color,\n  COUNT(*) AS sample_count\nFROM grouped\nGROUP BY group_id, substage_label\nORDER BY MIN(ts)\n) q",
+  "valueSchema": {
+    "type": "object",
+    "properties": {
+      "substage_label": {
+        "type": "string"
+      },
+      "start_ts": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "end_ts": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "color": {
+        "type": "string"
+      },
+      "sample_count": {
+        "type": "number"
+      }
+    },
+    "required": []
+  },
+  "paramsSchema": {
+    "type": "object",
+    "properties": {
+      "well_name": {
+        "type": "string"
+      },
+      "stage_num": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "well_name",
+      "stage_num"
+    ]
+  }
+}

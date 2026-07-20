@@ -2,7 +2,7 @@
   "key": "merged_layer_edit_permission_check_v1",
   "displayName": "Merged Layer Edit Permission Check",
   "description": "Merged dashboard copy of layer_edit_permission_check_v1.",
-  "sql": "SELECT * FROM (SELECT CASE WHEN :layer_id = 'manual:shared' THEN 1 WHEN :layer_id = 'manual:user:' || md5(CAST(:current_user_email AS TEXT)) THEN 1 ELSE 0 END AS can_edit) q",
+  "sql": "SELECT * FROM (SELECT CASE WHEN :layer_id = 'manual:shared' THEN 1 WHEN :layer_id = 'manual:user:' || md5(CAST(:current_user_email AS TEXT)) THEN 1 WHEN EXISTS (SELECT 1 FROM datastore:substage_label_layers_v3 l WHERE l.layer_id = :layer_id AND COALESCE(l.status, 'active') = 'active' AND COALESCE(l.is_editable, true) = true AND (l.owner_email = CAST(:current_user_email AS TEXT) OR l.created_by_email = CAST(:current_user_email AS TEXT))) THEN 1 ELSE 0 END AS can_edit) q",
   "valueSchema": {
     "type": "object",
     "properties": {

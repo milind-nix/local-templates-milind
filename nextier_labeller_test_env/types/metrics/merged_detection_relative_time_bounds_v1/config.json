@@ -1,0 +1,35 @@
+{
+  "key": "merged_detection_relative_time_bounds_v1",
+  "displayName": "Merged Detection Relative Time Bounds",
+  "description": "Resolves custom or relative time bounds against the selected Stage Detection well.",
+  "sql": "SELECT * FROM (WITH bounds AS (SELECT MIN(CAST(w.first_record_ts AS timestamp)) AS first_available_ts, MAX(CAST(w.last_record_ts AS timestamp)) AS last_available_ts FROM featurestore:merged_well_index_v1 w WHERE w.name = :well_name) SELECT CASE WHEN :time_range = 'previous_6h' THEN GREATEST(first_available_ts, last_available_ts - INTERVAL '6 hours') WHEN :time_range = 'previous_12h' THEN GREATEST(first_available_ts, last_available_ts - INTERVAL '12 hours') WHEN :time_range = 'previous_48h' THEN GREATEST(first_available_ts, last_available_ts - INTERVAL '48 hours') WHEN :time_range = 'previous_72h' THEN GREATEST(first_available_ts, last_available_ts - INTERVAL '72 hours') ELSE first_available_ts END AS start_time, last_available_ts AS end_time FROM bounds WHERE first_available_ts IS NOT NULL AND last_available_ts IS NOT NULL) q",
+  "valueSchema": {
+    "type": "object",
+    "properties": {
+      "start_time": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "end_time": {
+        "type": "string",
+        "format": "date-time"
+      }
+    },
+    "required": []
+  },
+  "paramsSchema": {
+    "type": "object",
+    "properties": {
+      "well_name": {
+        "type": "string"
+      },
+      "time_range": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "well_name",
+      "time_range"
+    ]
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "key": "merged_stage_execution_families_v1",
+  "displayName": "Merged Stage Execution by Fleet and Pad",
+  "description": "Global average score grouped by the fleet and pad equivalent of well family.",
+  "sql": "SELECT * FROM (\nSELECT\n  s.fleet_name,\n  s.pad_name,\n  s.fleet_name || ' / ' || s.pad_name AS family_name,\n  ROUND(AVG(s.composite_score)::numeric, 1) AS average_score,\n  COUNT(*)::bigint AS stage_count,\n  COUNT(DISTINCT s.name)::bigint AS well_count,\n  CASE\n    WHEN AVG(s.composite_score) >= 70 THEN '#2A9D6F'\n    WHEN AVG(s.composite_score) >= 45 THEN '#E6A23C'\n    ELSE '#D9534F'\n  END AS color\nFROM featurestore:merged_stage_execution_scores_v1 s\nWHERE s.formula_version = :formula_version\nAND s.normalization_version = :normalization_version\nGROUP BY s.fleet_name, s.pad_name\nORDER BY average_score, family_name\n) q",
+  "valueSchema": {
+    "type": "object",
+    "properties": {
+      "fleet_name": {
+        "type": "string"
+      },
+      "pad_name": {
+        "type": "string"
+      },
+      "family_name": {
+        "type": "string"
+      },
+      "average_score": {
+        "type": "number"
+      },
+      "stage_count": {
+        "type": "bigint"
+      },
+      "well_count": {
+        "type": "bigint"
+      },
+      "color": {
+        "type": "string"
+      }
+    },
+    "required": []
+  },
+  "paramsSchema": {
+    "type": "object",
+    "properties": {
+      "formula_version": {
+        "type": "string"
+      },
+      "normalization_version": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "formula_version",
+      "normalization_version"
+    ]
+  }
+}

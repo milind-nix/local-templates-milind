@@ -1,0 +1,1338 @@
+{
+  "key": "anomaly_threshold_tuning_merged_v1",
+  "displayName": "Anomaly Threshold Tuning",
+  "description": "Tune DESIGN/slurry delta thresholds using compact precomputed counts.",
+  "order": 32,
+  "config": {
+    "updateInterval": "5m",
+    "specVersion": "v2"
+  },
+  "paramsSchema": {
+    "type": "object",
+    "properties": {},
+    "required": []
+  },
+  "filters": [],
+  "charts": [],
+  "spec": {
+    "specVersion": "v2",
+    "theme": {
+      "preset": "corporate"
+    },
+    "state": {
+      "params": {
+        "fleet_name": {
+          "type": "string",
+          "default": null
+        },
+        "pad_name": {
+          "type": "string",
+          "default": null
+        },
+        "well_name": {
+          "type": "string",
+          "default": "__ALL__"
+        },
+        "pressure_threshold": {
+          "type": "number",
+          "default": 200
+        },
+        "rate_threshold": {
+          "type": "number",
+          "default": 5
+        },
+        "rolling_points": {
+          "type": "integer",
+          "default": 1
+        },
+        "inspect_well": {
+          "type": "string",
+          "default": null
+        },
+        "inspect_stage": {
+          "type": "string",
+          "default": "-1"
+        }
+      }
+    },
+    "navigation": {
+      "initialView": "main"
+    },
+    "widgets": [
+      {
+        "id": "controls",
+        "title": "Tuning Controls",
+        "chrome": {
+          "showActions": false,
+          "hideTitle": true,
+          "padding": 10,
+          "disableCard": false
+        },
+        "renderConfig": {
+          "library": "Custom",
+          "options": {
+            "type": "form",
+            "config": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "fleet_name",
+                  "pad_name",
+                  "pressure_threshold",
+                  "rate_threshold",
+                  "rolling_points"
+                ],
+                "properties": {
+                  "fleet_name": {
+                    "type": "string",
+                    "metadata": {
+                      "ui": {
+                        "label": "Fleet",
+                        "component": "select",
+                        "placeholder": "Select fleet",
+                        "optionsMetric": {
+                          "metricKey": "merged_fleet_options_v1",
+                          "valuePath": "value",
+                          "labelPath": "label"
+                        },
+                        "onChangeEventId": "fleet_changed"
+                      }
+                    }
+                  },
+                  "pad_name": {
+                    "type": "string",
+                    "metadata": {
+                      "ui": {
+                        "label": "Pad",
+                        "component": "select",
+                        "placeholder": "Select pad",
+                        "optionsMetric": {
+                          "metricKey": "merged_pad_options_v1",
+                          "params": {
+                            "fleet_name": "{{form.fleet_name}}"
+                          },
+                          "valuePath": "value",
+                          "labelPath": "label"
+                        },
+                        "onChangeEventId": "pad_changed"
+                      }
+                    }
+                  },
+                  "well_name": {
+                    "type": "string",
+                    "metadata": {
+                      "ui": {
+                        "label": "Well",
+                        "component": "select",
+                        "placeholder": "All wells",
+                        "clearable": false,
+                        "optionsMetric": {
+                          "metricKey": "merged_anomaly_tuning_well_options_v1",
+                          "params": {
+                            "fleet_name": "{{form.fleet_name}}",
+                            "pad_name": "{{form.pad_name}}"
+                          },
+                          "valuePath": "value",
+                          "labelPath": "label"
+                        }
+                      }
+                    }
+                  },
+                  "pressure_threshold": {
+                    "type": "number",
+                    "minimum": 50,
+                    "maximum": 500,
+                    "multipleOf": 10,
+                    "metadata": {
+                      "ui": {
+                        "label": "Pressure Threshold (psi/step)",
+                        "component": "slider",
+                        "showTooltip": true,
+                        "marks": [
+                          {
+                            "value": 50,
+                            "label": "50"
+                          },
+                          {
+                            "value": 200,
+                            "label": "200"
+                          },
+                          {
+                            "value": 300,
+                            "label": "300"
+                          },
+                          {
+                            "value": 500,
+                            "label": "500"
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  "rate_threshold": {
+                    "type": "number",
+                    "minimum": 1,
+                    "maximum": 20,
+                    "multipleOf": 1,
+                    "metadata": {
+                      "ui": {
+                        "label": "Rate-Drop Threshold (bpm/step)",
+                        "component": "slider",
+                        "showTooltip": true,
+                        "marks": [
+                          {
+                            "value": 1,
+                            "label": "1"
+                          },
+                          {
+                            "value": 5,
+                            "label": "5"
+                          },
+                          {
+                            "value": 10,
+                            "label": "10"
+                          },
+                          {
+                            "value": 20,
+                            "label": "20"
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  "rolling_points": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 10,
+                    "metadata": {
+                      "ui": {
+                        "label": "Rolling Window (points)",
+                        "component": "slider",
+                        "showTooltip": true,
+                        "marks": [
+                          {
+                            "value": 1,
+                            "label": "1"
+                          },
+                          {
+                            "value": 3,
+                            "label": "3"
+                          },
+                          {
+                            "value": 5,
+                            "label": "5"
+                          },
+                          {
+                            "value": 10,
+                            "label": "10"
+                          }
+                        ],
+                        "showSteps": true
+                      }
+                    }
+                  }
+                }
+              },
+              "initialValues": {
+                "pressure_threshold": 200,
+                "rate_threshold": 5,
+                "rolling_points": 1,
+                "well_name": "__ALL__"
+              },
+              "layout": {
+                "cols": 12,
+                "gap": 10,
+                "rows": [
+                  {
+                    "items": [
+                      {
+                        "type": "field",
+                        "key": "fleet_name",
+                        "colSpan": 3
+                      },
+                      {
+                        "type": "field",
+                        "key": "pad_name",
+                        "colSpan": 3
+                      },
+                      {
+                        "type": "field",
+                        "key": "well_name",
+                        "colSpan": 6
+                      }
+                    ]
+                  },
+                  {
+                    "items": [
+                      {
+                        "type": "field",
+                        "key": "pressure_threshold",
+                        "colSpan": 3
+                      },
+                      {
+                        "type": "field",
+                        "key": "rate_threshold",
+                        "colSpan": 3
+                      },
+                      {
+                        "type": "field",
+                        "key": "rolling_points",
+                        "colSpan": 3
+                      },
+                      {
+                        "type": "button",
+                        "key": "apply",
+                        "colSpan": 3,
+                        "align": "end"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "actions": [
+                {
+                  "id": "apply",
+                  "label": "Apply",
+                  "kind": "submit",
+                  "eventId": "apply",
+                  "ui": {
+                    "color": "primary",
+                    "variant": "solid",
+                    "size": "sm",
+                    "radius": "sm",
+                    "fullWidth": true
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "events": {
+          "fleet_changed": [
+            {
+              "type": "set_form_values",
+              "updates": {
+                "fleet_name": "{{form.fleet_name}}",
+                "pad_name": null,
+                "well_name": "__ALL__"
+              }
+            }
+          ],
+          "pad_changed": [
+            {
+              "type": "set_form_values",
+              "updates": {
+                "fleet_name": "{{form.fleet_name}}",
+                "pad_name": "{{form.pad_name}}",
+                "well_name": "__ALL__"
+              }
+            }
+          ],
+          "apply": [
+            {
+              "type": "set_state",
+              "updates": {
+                "fleet_name": "{{form.fleet_name}}",
+                "pad_name": "{{form.pad_name}}",
+                "well_name": "{{form.well_name}}",
+                "pressure_threshold": "{{form.pressure_threshold}}",
+                "rate_threshold": "{{form.rate_threshold}}",
+                "rolling_points": "{{form.rolling_points}}",
+                "inspect_well": "{{form.well_name}}",
+                "inspect_stage": "-1"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": "total",
+        "title": "Total Triggered Segments",
+        "chrome": {
+          "showActions": false,
+          "padding": 8,
+          "disableCard": false
+        },
+        "dataConfig": {
+          "total_triggered_segments": {
+            "source": "metric",
+            "metricKey": "merged_anomaly_tuning_summary_v1",
+            "fieldName": "total_triggered_segments",
+            "bindings": {
+              "query": {
+                "fleet_name": "fleet_name",
+                "pad_name": "pad_name",
+                "well_name": "well_name",
+                "pressure_threshold": "pressure_threshold",
+                "rate_threshold": "rate_threshold",
+                "rolling_points": "rolling_points"
+              },
+              "required": [
+                "fleet_name",
+                "pad_name",
+                "well_name",
+                "pressure_threshold",
+                "rate_threshold",
+                "rolling_points"
+              ]
+            }
+          }
+        },
+        "renderConfig": {
+          "library": "Custom",
+          "options": {
+            "type": "stat-v2",
+            "fieldsMap": {
+              "value": "total_triggered_segments"
+            },
+            "valueLabel": "Total Triggered Segments",
+            "size": "xl",
+            "formatTemplate": "{{ value | int }}",
+            "color": "danger"
+          }
+        }
+      },
+      {
+        "id": "pressure",
+        "title": "Pressure Surge Segments",
+        "chrome": {
+          "showActions": false,
+          "padding": 8,
+          "disableCard": false
+        },
+        "dataConfig": {
+          "pressure_surge_segments": {
+            "source": "metric",
+            "metricKey": "merged_anomaly_tuning_summary_v1",
+            "fieldName": "pressure_surge_segments",
+            "bindings": {
+              "query": {
+                "fleet_name": "fleet_name",
+                "pad_name": "pad_name",
+                "well_name": "well_name",
+                "pressure_threshold": "pressure_threshold",
+                "rate_threshold": "rate_threshold",
+                "rolling_points": "rolling_points"
+              },
+              "required": [
+                "fleet_name",
+                "pad_name",
+                "well_name",
+                "pressure_threshold",
+                "rate_threshold",
+                "rolling_points"
+              ]
+            }
+          }
+        },
+        "renderConfig": {
+          "library": "Custom",
+          "options": {
+            "type": "stat-v2",
+            "fieldsMap": {
+              "value": "pressure_surge_segments"
+            },
+            "valueLabel": "Pressure Surge Segments",
+            "size": "xl",
+            "formatTemplate": "{{ value | int }}",
+            "color": "warning"
+          }
+        }
+      },
+      {
+        "id": "rate",
+        "title": "Pump Drop Segments",
+        "chrome": {
+          "showActions": false,
+          "padding": 8,
+          "disableCard": false
+        },
+        "dataConfig": {
+          "pump_rate_drop_segments": {
+            "source": "metric",
+            "metricKey": "merged_anomaly_tuning_summary_v1",
+            "fieldName": "pump_rate_drop_segments",
+            "bindings": {
+              "query": {
+                "fleet_name": "fleet_name",
+                "pad_name": "pad_name",
+                "well_name": "well_name",
+                "pressure_threshold": "pressure_threshold",
+                "rate_threshold": "rate_threshold",
+                "rolling_points": "rolling_points"
+              },
+              "required": [
+                "fleet_name",
+                "pad_name",
+                "well_name",
+                "pressure_threshold",
+                "rate_threshold",
+                "rolling_points"
+              ]
+            }
+          }
+        },
+        "renderConfig": {
+          "library": "Custom",
+          "options": {
+            "type": "stat-v2",
+            "fieldsMap": {
+              "value": "pump_rate_drop_segments"
+            },
+            "valueLabel": "Pump Drop Segments",
+            "size": "xl",
+            "formatTemplate": "{{ value | int }}",
+            "color": "primary"
+          }
+        }
+      },
+      {
+        "id": "shutdown",
+        "title": "Mid-Stage Shutdown Segments",
+        "chrome": {
+          "showActions": false,
+          "padding": 8,
+          "disableCard": false
+        },
+        "dataConfig": {
+          "mid_stage_shutdown_segments": {
+            "source": "metric",
+            "metricKey": "merged_anomaly_tuning_summary_v1",
+            "fieldName": "mid_stage_shutdown_segments",
+            "bindings": {
+              "query": {
+                "fleet_name": "fleet_name",
+                "pad_name": "pad_name",
+                "well_name": "well_name",
+                "pressure_threshold": "pressure_threshold",
+                "rate_threshold": "rate_threshold",
+                "rolling_points": "rolling_points"
+              },
+              "required": [
+                "fleet_name",
+                "pad_name",
+                "well_name",
+                "pressure_threshold",
+                "rate_threshold",
+                "rolling_points"
+              ]
+            }
+          }
+        },
+        "renderConfig": {
+          "library": "Custom",
+          "options": {
+            "type": "stat-v2",
+            "fieldsMap": {
+              "value": "mid_stage_shutdown_segments"
+            },
+            "valueLabel": "Mid-Stage Shutdown Segments",
+            "size": "xl",
+            "formatTemplate": "{{ value | int }}"
+          }
+        }
+      },
+      {
+        "id": "stages",
+        "title": "Stages With Any Trigger",
+        "chrome": {
+          "showActions": false,
+          "padding": 8,
+          "disableCard": false
+        },
+        "dataConfig": {
+          "stages_with_trigger": {
+            "source": "metric",
+            "metricKey": "merged_anomaly_tuning_summary_v1",
+            "fieldName": "stages_with_trigger",
+            "bindings": {
+              "query": {
+                "fleet_name": "fleet_name",
+                "pad_name": "pad_name",
+                "well_name": "well_name",
+                "pressure_threshold": "pressure_threshold",
+                "rate_threshold": "rate_threshold",
+                "rolling_points": "rolling_points"
+              },
+              "required": [
+                "fleet_name",
+                "pad_name",
+                "well_name",
+                "pressure_threshold",
+                "rate_threshold",
+                "rolling_points"
+              ]
+            }
+          }
+        },
+        "renderConfig": {
+          "library": "Custom",
+          "options": {
+            "type": "stat-v2",
+            "fieldsMap": {
+              "value": "stages_with_trigger"
+            },
+            "valueLabel": "Stages With Any Trigger",
+            "size": "xl",
+            "formatTemplate": "{{ value | int }}",
+            "color": "success"
+          }
+        }
+      },
+      {
+        "id": "well_chart",
+        "title": "Triggered Segments by Well",
+        "chrome": {
+          "showActions": false,
+          "padding": 8,
+          "disableCard": false
+        },
+        "dataConfig": {
+          "wells": {
+            "source": "metric",
+            "metricKey": "merged_anomaly_tuning_wells_v1",
+            "fieldName": "*",
+            "bindings": {
+              "query": {
+                "fleet_name": "fleet_name",
+                "pad_name": "pad_name",
+                "well_name": "well_name",
+                "pressure_threshold": "pressure_threshold",
+                "rate_threshold": "rate_threshold",
+                "rolling_points": "rolling_points"
+              },
+              "required": [
+                "fleet_name",
+                "pad_name",
+                "well_name",
+                "pressure_threshold",
+                "rate_threshold",
+                "rolling_points"
+              ]
+            }
+          }
+        },
+        "renderConfig": {
+          "library": "ReactECharts",
+          "options": {
+            "tooltip": {
+              "trigger": "axis",
+              "axisPointer": {
+                "type": "shadow"
+              }
+            },
+            "legend": {
+              "top": 0
+            },
+            "grid": {
+              "top": 45,
+              "left": 170,
+              "right": 30,
+              "bottom": 55,
+              "containLabel": true
+            },
+            "xAxis": {
+              "type": "category",
+              "axisLabel": {
+                "rotate": 35,
+                "hideOverlap": true
+              }
+            },
+            "yAxis": {
+              "type": "value",
+              "name": "Segments"
+            },
+            "dataZoom": [
+              {
+                "type": "inside",
+                "xAxisIndex": 0
+              },
+              {
+                "type": "slider",
+                "xAxisIndex": 0,
+                "bottom": 8,
+                "height": 18
+              }
+            ],
+            "dataset": {
+              "source": "data:dataset",
+              "dimensions": [
+                "wells.well_name",
+                "wells.pressure_surge_segments",
+                "wells.pump_rate_drop_segments",
+                "wells.mid_stage_shutdown_segments"
+              ]
+            },
+            "series": [
+              {
+                "name": "Pressure Surges",
+                "type": "bar",
+                "stack": "total",
+                "encode": {
+                  "x": "wells.well_name",
+                  "y": "wells.pressure_surge_segments"
+                },
+                "color": "#D35400"
+              },
+              {
+                "name": "Pump Rate Drops",
+                "type": "bar",
+                "stack": "total",
+                "encode": {
+                  "x": "wells.well_name",
+                  "y": "wells.pump_rate_drop_segments"
+                },
+                "color": "#2878B5"
+              },
+              {
+                "name": "Mid-Stage Shutdowns",
+                "type": "bar",
+                "stack": "total",
+                "encode": {
+                  "x": "wells.well_name",
+                  "y": "wells.mid_stage_shutdown_segments"
+                },
+                "color": "#30343B"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "distribution",
+        "title": "Triggered Segments per Stage",
+        "chrome": {
+          "showActions": false,
+          "padding": 8,
+          "disableCard": false
+        },
+        "dataConfig": {
+          "distribution": {
+            "source": "metric",
+            "metricKey": "merged_anomaly_tuning_distribution_v1",
+            "fieldName": "*",
+            "bindings": {
+              "query": {
+                "fleet_name": "fleet_name",
+                "pad_name": "pad_name",
+                "well_name": "well_name",
+                "pressure_threshold": "pressure_threshold",
+                "rate_threshold": "rate_threshold",
+                "rolling_points": "rolling_points"
+              },
+              "required": [
+                "fleet_name",
+                "pad_name",
+                "well_name",
+                "pressure_threshold",
+                "rate_threshold",
+                "rolling_points"
+              ]
+            }
+          }
+        },
+        "renderConfig": {
+          "library": "ReactECharts",
+          "options": {
+            "tooltip": {
+              "trigger": "item"
+            },
+            "grid": {
+              "top": 25,
+              "left": 65,
+              "right": 25,
+              "bottom": 50,
+              "containLabel": true
+            },
+            "xAxis": {
+              "type": "category",
+              "name": "Triggered Segments"
+            },
+            "yAxis": {
+              "type": "value",
+              "name": "Stages"
+            },
+            "dataset": {
+              "source": "data:dataset",
+              "dimensions": [
+                "distribution.triggered_segments",
+                "distribution.stage_count"
+              ]
+            },
+            "series": [
+              {
+                "type": "bar",
+                "encode": {
+                  "x": "distribution.triggered_segments",
+                  "y": "distribution.stage_count"
+                },
+                "color": "#4C78A8",
+                "barMaxWidth": 30
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "stage_table",
+        "title": "Per-Stage Threshold Results",
+        "chrome": {
+          "showActions": false,
+          "padding": 8,
+          "disableCard": false
+        },
+        "dataConfig": {
+          "stages": {
+            "source": "metric",
+            "metricKey": "merged_anomaly_tuning_stages_v1",
+            "fieldName": "*",
+            "bindings": {
+              "query": {
+                "fleet_name": "fleet_name",
+                "pad_name": "pad_name",
+                "well_name": "well_name",
+                "pressure_threshold": "pressure_threshold",
+                "rate_threshold": "rate_threshold",
+                "rolling_points": "rolling_points"
+              },
+              "required": [
+                "fleet_name",
+                "pad_name",
+                "well_name",
+                "pressure_threshold",
+                "rate_threshold",
+                "rolling_points"
+              ]
+            }
+          }
+        },
+        "renderConfig": {
+          "library": "Custom",
+          "options": {
+            "type": "table",
+            "config": {
+              "columns": [
+                {
+                  "key": "well_name",
+                  "label": "Well",
+                  "minWidth": 220,
+                  "truncate": true
+                },
+                {
+                  "key": "stage_num",
+                  "label": "Stage",
+                  "minWidth": 80
+                },
+                {
+                  "key": "triggered_segments",
+                  "label": "Triggered",
+                  "minWidth": 100
+                },
+                {
+                  "key": "pressure_surge_segments",
+                  "label": "Pressure",
+                  "minWidth": 100
+                },
+                {
+                  "key": "pump_rate_drop_segments",
+                  "label": "Rate Drop",
+                  "minWidth": 100
+                },
+                {
+                  "key": "mid_stage_shutdown_segments",
+                  "label": "Shutdown",
+                  "minWidth": 100
+                }
+              ],
+              "dataset": {
+                "source": "data:dataset",
+                "dimensions": [
+                  "stages.well_name",
+                  "stages.stage_num",
+                  "stages.triggered_segments",
+                  "stages.pressure_surge_segments",
+                  "stages.pump_rate_drop_segments",
+                  "stages.mid_stage_shutdown_segments"
+                ]
+              },
+              "pagination": {
+                "pageSize": 25
+              }
+            },
+            "ui": {
+              "variant": "bordered",
+              "borderStyle": "all",
+              "enablePagination": true,
+              "rowsPerPage": 25,
+              "maxBodyHeight": 420,
+              "stickyHeader": true,
+              "cellHeight": "sm"
+            }
+          }
+        }
+      },
+      {
+        "id": "delta_chart",
+        "title": "Pressure and Rate Delta Traces",
+        "description": "Canonical DESIGN/slurry delta logic for one stage.",
+        "isDataLarge": true,
+        "chrome": {
+          "showActions": false,
+          "padding": 8,
+          "disableCard": false
+        },
+        "dataConfig": {
+          "deltas": {
+            "source": "metric",
+            "metricKey": "merged_anomaly_tuning_stage_deltas_v1",
+            "fieldName": "*",
+            "bindings": {
+              "query": {
+                "well_name": "inspect_well",
+                "stage_num": "inspect_stage",
+                "pressure_threshold": "pressure_threshold",
+                "rate_threshold": "rate_threshold",
+                "rolling_points": "rolling_points"
+              },
+              "required": [
+                "well_name",
+                "stage_num",
+                "pressure_threshold",
+                "rate_threshold",
+                "rolling_points"
+              ]
+            }
+          }
+        },
+        "renderConfig": {
+          "library": "ReactECharts",
+          "options": {
+            "animation": false,
+            "legend": {
+              "top": 0
+            },
+            "tooltip": {
+              "trigger": "axis",
+              "axisPointer": {
+                "type": "cross"
+              }
+            },
+            "grid": [
+              {
+                "top": 48,
+                "left": 75,
+                "right": 35,
+                "height": "33%",
+                "containLabel": true
+              },
+              {
+                "top": "57%",
+                "left": 75,
+                "right": 35,
+                "height": "27%",
+                "containLabel": true
+              }
+            ],
+            "xAxis": [
+              {
+                "type": "time",
+                "gridIndex": 0,
+                "axisLabel": {
+                  "show": false
+                }
+              },
+              {
+                "type": "time",
+                "gridIndex": 1,
+                "name": "Time",
+                "axisLabel": {
+                  "formatter": "{HH}:{mm}",
+                  "rotate": 30
+                }
+              }
+            ],
+            "yAxis": [
+              {
+                "type": "value",
+                "gridIndex": 0,
+                "name": "Pressure \u0394"
+              },
+              {
+                "type": "value",
+                "gridIndex": 1,
+                "name": "Rate \u0394"
+              }
+            ],
+            "dataZoom": [
+              {
+                "type": "inside",
+                "xAxisIndex": [0, 1],
+                "filterMode": "none"
+              },
+              {
+                "type": "slider",
+                "xAxisIndex": [0, 1],
+                "bottom": 8,
+                "height": 18,
+                "filterMode": "none"
+              }
+            ],
+            "dataset": {
+              "source": "data:dataset",
+              "dimensions": [
+                "deltas.timestamp",
+                "deltas.delta_pressure",
+                "deltas.delta_rate",
+                "deltas.pressure_trigger",
+                "deltas.rate_trigger",
+                "deltas.pressure_threshold",
+                "deltas.negative_rate_threshold"
+              ]
+            },
+            "series": [
+              {
+                "name": "Pressure \u0394",
+                "type": "line",
+                "xAxisIndex": 0,
+                "yAxisIndex": 0,
+                "showSymbol": false,
+                "sampling": "lttb",
+                "encode": {
+                  "x": "deltas.timestamp",
+                  "y": "deltas.delta_pressure"
+                },
+                "color": "#D35400"
+              },
+              {
+                "name": "Pressure threshold",
+                "type": "line",
+                "xAxisIndex": 0,
+                "yAxisIndex": 0,
+                "showSymbol": false,
+                "encode": {
+                  "x": "deltas.timestamp",
+                  "y": "deltas.pressure_threshold"
+                },
+                "lineStyle": {
+                  "type": "dashed",
+                  "width": 1,
+                  "color": "#C0392B"
+                },
+                "tooltip": {
+                  "show": false
+                }
+              },
+              {
+                "name": "Pressure trigger",
+                "type": "scatter",
+                "xAxisIndex": 0,
+                "yAxisIndex": 0,
+                "symbolSize": 7,
+                "encode": {
+                  "x": "deltas.timestamp",
+                  "y": "deltas.pressure_trigger"
+                },
+                "color": "#C0392B"
+              },
+              {
+                "name": "Rate \u0394",
+                "type": "line",
+                "xAxisIndex": 1,
+                "yAxisIndex": 1,
+                "showSymbol": false,
+                "sampling": "lttb",
+                "encode": {
+                  "x": "deltas.timestamp",
+                  "y": "deltas.delta_rate"
+                },
+                "color": "#2878B5"
+              },
+              {
+                "name": "Rate threshold",
+                "type": "line",
+                "xAxisIndex": 1,
+                "yAxisIndex": 1,
+                "showSymbol": false,
+                "encode": {
+                  "x": "deltas.timestamp",
+                  "y": "deltas.negative_rate_threshold"
+                },
+                "lineStyle": {
+                  "type": "dashed",
+                  "width": 1,
+                  "color": "#0B5394"
+                },
+                "tooltip": {
+                  "show": false
+                }
+              },
+              {
+                "name": "Rate trigger",
+                "type": "scatter",
+                "xAxisIndex": 1,
+                "yAxisIndex": 1,
+                "symbolSize": 7,
+                "encode": {
+                  "x": "deltas.timestamp",
+                  "y": "deltas.rate_trigger"
+                },
+                "color": "#0B5394"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "delta_inspector_form",
+        "title": "Delta Inspector",
+        "chrome": {
+          "showActions": false,
+          "hideTitle": false,
+          "padding": 8,
+          "disableCard": false
+        },
+        "renderConfig": {
+          "library": "Custom",
+          "options": {
+            "type": "form",
+            "config": {
+              "schema": {
+                "type": "object",
+                "required": ["inspect_well", "inspect_stage"],
+                "properties": {
+                  "inspect_well": {
+                    "type": "string",
+                    "metadata": {
+                      "ui": {
+                        "label": "Well",
+                        "component": "select",
+                        "placeholder": "Select well",
+                        "optionsMetric": {
+                          "metricKey": "merged_well_options_v1",
+                          "params": {
+                            "fleet_name": "{{form.fleet_name}}",
+                            "pad_name": "{{form.pad_name}}"
+                          },
+                          "valuePath": "value",
+                          "labelPath": "label"
+                        },
+                        "onChangeEventId": "inspector_well_changed"
+                      }
+                    }
+                  },
+                  "inspect_stage": {
+                    "type": "string",
+                    "metadata": {
+                      "ui": {
+                        "label": "Stage",
+                        "component": "select",
+                        "placeholder": "Select stage",
+                        "optionsMetric": {
+                          "metricKey": "merged_presence_stage_options_v1",
+                          "params": {
+                            "well_name": "{{form.inspect_well}}"
+                          },
+                          "valuePath": "value",
+                          "labelPath": "label"
+                        }
+                      }
+                    }
+                  },
+                  "fleet_name": {
+                    "type": "string"
+                  },
+                  "pad_name": {
+                    "type": "string"
+                  }
+                }
+              },
+              "layout": {
+                "cols": 12,
+                "gap": 10,
+                "rows": [
+                  {
+                    "items": [
+                      {
+                        "type": "field",
+                        "key": "inspect_well",
+                        "colSpan": 5
+                      },
+                      {
+                        "type": "field",
+                        "key": "inspect_stage",
+                        "colSpan": 5
+                      },
+                      {
+                        "type": "button",
+                        "key": "apply_delta_inspector",
+                        "colSpan": 2,
+                        "align": "end"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "actions": [
+                {
+                  "id": "apply_delta_inspector",
+                  "label": "Apply",
+                  "kind": "submit",
+                  "eventId": "apply_delta_inspector",
+                  "ui": {
+                    "color": "primary",
+                    "variant": "solid",
+                    "size": "sm",
+                    "radius": "sm",
+                    "fullWidth": true
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "events": {
+          "inspector_well_changed": [
+            {
+              "type": "set_form_values",
+              "updates": {
+                "inspect_well": "{{form.inspect_well}}",
+                "inspect_stage": "-1"
+              }
+            }
+          ],
+          "apply_delta_inspector": [
+            {
+              "type": "set_state",
+              "updates": {
+                "inspect_well": "{{form.inspect_well}}",
+                "inspect_stage": "{{form.inspect_stage}}"
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "views": [
+      {
+        "id": "main",
+        "title": "Anomaly Threshold Tuning",
+        "presentation": {
+          "type": "page",
+          "gridMargin": [12, 8]
+        },
+        "layout": [
+          {
+            "instanceId": "controls_main",
+            "widgetId": "controls",
+            "gridPos": {
+              "x": 0,
+              "y": 0,
+              "w": 24,
+              "h": 6
+            }
+          },
+          {
+            "instanceId": "total_main",
+            "widgetId": "total",
+            "gridPos": {
+              "x": 0,
+              "y": 6,
+              "w": 5,
+              "h": 3
+            }
+          },
+          {
+            "instanceId": "pressure_main",
+            "widgetId": "pressure",
+            "gridPos": {
+              "x": 5,
+              "y": 6,
+              "w": 5,
+              "h": 3
+            }
+          },
+          {
+            "instanceId": "rate_main",
+            "widgetId": "rate",
+            "gridPos": {
+              "x": 10,
+              "y": 6,
+              "w": 5,
+              "h": 3
+            }
+          },
+          {
+            "instanceId": "shutdown_main",
+            "widgetId": "shutdown",
+            "gridPos": {
+              "x": 15,
+              "y": 6,
+              "w": 5,
+              "h": 3
+            }
+          },
+          {
+            "instanceId": "stages_main",
+            "widgetId": "stages",
+            "gridPos": {
+              "x": 20,
+              "y": 6,
+              "w": 4,
+              "h": 3
+            }
+          },
+          {
+            "instanceId": "well_chart_main",
+            "widgetId": "well_chart",
+            "gridPos": {
+              "x": 0,
+              "y": 9,
+              "w": 16,
+              "h": 12
+            }
+          },
+          {
+            "instanceId": "distribution_main",
+            "widgetId": "distribution",
+            "gridPos": {
+              "x": 16,
+              "y": 9,
+              "w": 8,
+              "h": 12
+            }
+          },
+          {
+            "instanceId": "stage_table_main",
+            "widgetId": "stage_table",
+            "gridPos": {
+              "x": 0,
+              "y": 21,
+              "w": 24,
+              "h": 12
+            }
+          },
+          {
+            "instanceId": "delta_chart_main",
+            "widgetId": "delta_chart",
+            "gridPos": {
+              "x": 0,
+              "y": 37,
+              "w": 24,
+              "h": 17
+            }
+          },
+          {
+            "instanceId": "delta_inspector_form_main",
+            "widgetId": "delta_inspector_form",
+            "gridPos": {
+              "x": 0,
+              "y": 33,
+              "w": 24,
+              "h": 4
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,1290 @@
+{
+  "key": "nix_anomaly_statistics_merged_v2",
+  "displayName": "Anomaly Statistics",
+  "description": "Active-run anomaly segment statistics and drilldown.",
+  "order": 31,
+  "config": {
+    "updateInterval": "5m",
+    "specVersion": "v2"
+  },
+  "paramsSchema": {
+    "type": "object",
+    "properties": {},
+    "required": []
+  },
+  "filters": [],
+  "charts": [],
+  "spec": {
+    "specVersion": "v2",
+    "theme": {
+      "preset": "corporate"
+    },
+    "state": {
+      "params": {
+        "fleet_name": {
+          "type": "string",
+          "default": null
+        },
+        "pad_name": {
+          "type": "string",
+          "default": null
+        },
+        "well_name": {
+          "type": "string",
+          "default": "__ALL__"
+        },
+        "stage_num": {
+          "type": "string",
+          "default": "-1"
+        }
+      }
+    },
+    "navigation": {
+      "initialView": "main"
+    },
+    "widgets": [
+      {
+        "id": "scope",
+        "title": "Scope",
+        "chrome": {
+          "showActions": false,
+          "hideTitle": true,
+          "padding": 10,
+          "disableCard": false
+        },
+        "renderConfig": {
+          "library": "Custom",
+          "options": {
+            "type": "form",
+            "config": {
+              "schema": {
+                "type": "object",
+                "required": ["fleet_name", "pad_name"],
+                "properties": {
+                  "fleet_name": {
+                    "type": "string",
+                    "metadata": {
+                      "ui": {
+                        "label": "Fleet",
+                        "component": "select",
+                        "placeholder": "Select fleet",
+                        "optionsMetric": {
+                          "metricKey": "merged_fleet_options_v1",
+                          "valuePath": "value",
+                          "labelPath": "label"
+                        },
+                        "onChangeEventId": "fleet_changed"
+                      }
+                    }
+                  },
+                  "pad_name": {
+                    "type": "string",
+                    "metadata": {
+                      "ui": {
+                        "label": "Pad",
+                        "component": "select",
+                        "placeholder": "Select pad",
+                        "optionsMetric": {
+                          "metricKey": "merged_pad_options_v1",
+                          "params": {
+                            "fleet_name": "{{form.fleet_name}}"
+                          },
+                          "valuePath": "value",
+                          "labelPath": "label"
+                        },
+                        "onChangeEventId": "pad_changed"
+                      }
+                    }
+                  },
+                  "well_name": {
+                    "type": "string",
+                    "metadata": {
+                      "ui": {
+                        "label": "Well",
+                        "component": "select",
+                        "placeholder": "All wells",
+                        "clearable": true,
+                        "optionsMetric": {
+                          "metricKey": "merged_well_options_v1",
+                          "params": {
+                            "fleet_name": "{{form.fleet_name}}",
+                            "pad_name": "{{form.pad_name}}"
+                          },
+                          "valuePath": "value",
+                          "labelPath": "label"
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "layout": {
+                "cols": 12,
+                "gap": 10,
+                "rows": [
+                  {
+                    "items": [
+                      {
+                        "type": "field",
+                        "key": "fleet_name",
+                        "colSpan": 3
+                      },
+                      {
+                        "type": "field",
+                        "key": "pad_name",
+                        "colSpan": 3
+                      },
+                      {
+                        "type": "field",
+                        "key": "well_name",
+                        "colSpan": 5
+                      },
+                      {
+                        "type": "button",
+                        "key": "apply",
+                        "colSpan": 1,
+                        "align": "end"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "actions": [
+                {
+                  "id": "apply",
+                  "label": "Apply",
+                  "kind": "submit",
+                  "eventId": "apply",
+                  "ui": {
+                    "color": "primary",
+                    "variant": "solid",
+                    "size": "sm",
+                    "radius": "sm",
+                    "fullWidth": true
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "events": {
+          "fleet_changed": [
+            {
+              "type": "set_form_values",
+              "updates": {
+                "fleet_name": "{{form.fleet_name}}",
+                "pad_name": null,
+                "well_name": null
+              }
+            }
+          ],
+          "pad_changed": [
+            {
+              "type": "set_form_values",
+              "updates": {
+                "fleet_name": "{{form.fleet_name}}",
+                "pad_name": "{{form.pad_name}}",
+                "well_name": null
+              }
+            }
+          ],
+          "apply": [
+            {
+              "type": "set_state",
+              "updates": {
+                "fleet_name": "{{form.fleet_name}}",
+                "pad_name": "{{form.pad_name}}",
+                "well_name": "{{form.well_name}}",
+                "stage_num": "-1"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": "total_wells",
+        "title": "Total Wells",
+        "chrome": {
+          "showActions": false,
+          "padding": 8,
+          "disableCard": false
+        },
+        "dataConfig": {
+          "total_wells": {
+            "source": "metric",
+            "metricKey": "merged_anomaly_statistics_summary_v1",
+            "fieldName": "total_wells",
+            "bindings": {
+              "query": {
+                "fleet_name": "fleet_name",
+                "pad_name": "pad_name",
+                "well_name": "well_name"
+              },
+              "required": ["fleet_name", "pad_name", "well_name"]
+            }
+          }
+        },
+        "renderConfig": {
+          "library": "Custom",
+          "options": {
+            "type": "stat-v2",
+            "fieldsMap": {
+              "value": "total_wells"
+            },
+            "valueLabel": "Total Wells",
+            "size": "xl",
+            "formatTemplate": "{{ value | int }}"
+          }
+        }
+      },
+      {
+        "id": "total_stages",
+        "title": "Total Stages",
+        "chrome": {
+          "showActions": false,
+          "padding": 8,
+          "disableCard": false
+        },
+        "dataConfig": {
+          "total_stages": {
+            "source": "metric",
+            "metricKey": "merged_anomaly_statistics_summary_v1",
+            "fieldName": "total_stages",
+            "bindings": {
+              "query": {
+                "fleet_name": "fleet_name",
+                "pad_name": "pad_name",
+                "well_name": "well_name"
+              },
+              "required": ["fleet_name", "pad_name", "well_name"]
+            }
+          }
+        },
+        "renderConfig": {
+          "library": "Custom",
+          "options": {
+            "type": "stat-v2",
+            "fieldsMap": {
+              "value": "total_stages"
+            },
+            "valueLabel": "Total Stages",
+            "size": "xl",
+            "formatTemplate": "{{ value | int }}"
+          }
+        }
+      },
+      {
+        "id": "affected_stages",
+        "title": "Stages with Anomaly",
+        "chrome": {
+          "showActions": false,
+          "padding": 8,
+          "disableCard": false
+        },
+        "dataConfig": {
+          "stages_with_anomaly": {
+            "source": "metric",
+            "metricKey": "merged_anomaly_statistics_summary_v1",
+            "fieldName": "stages_with_anomaly",
+            "bindings": {
+              "query": {
+                "fleet_name": "fleet_name",
+                "pad_name": "pad_name",
+                "well_name": "well_name"
+              },
+              "required": ["fleet_name", "pad_name", "well_name"]
+            }
+          }
+        },
+        "renderConfig": {
+          "library": "Custom",
+          "options": {
+            "type": "stat-v2",
+            "fieldsMap": {
+              "value": "stages_with_anomaly"
+            },
+            "valueLabel": "Stages with Anomaly",
+            "size": "xl",
+            "formatTemplate": "{{ value | int }}",
+            "color": "warning"
+          }
+        }
+      },
+      {
+        "id": "total_events",
+        "title": "Anomalous Segments",
+        "chrome": {
+          "showActions": false,
+          "padding": 8,
+          "disableCard": false
+        },
+        "dataConfig": {
+          "total_anomaly_lines": {
+            "source": "metric",
+            "metricKey": "merged_anomaly_statistics_summary_v1",
+            "fieldName": "total_anomaly_lines",
+            "bindings": {
+              "query": {
+                "fleet_name": "fleet_name",
+                "pad_name": "pad_name",
+                "well_name": "well_name"
+              },
+              "required": ["fleet_name", "pad_name", "well_name"]
+            }
+          }
+        },
+        "renderConfig": {
+          "library": "Custom",
+          "options": {
+            "type": "stat-v2",
+            "fieldsMap": {
+              "value": "total_anomaly_lines"
+            },
+            "valueLabel": "Anomalous Segments",
+            "size": "xl",
+            "formatTemplate": "{{ value | int }}",
+            "color": "danger"
+          }
+        }
+      },
+      {
+        "id": "pressure_events",
+        "title": "Pressure Surges",
+        "chrome": {
+          "showActions": false,
+          "padding": 8,
+          "disableCard": false
+        },
+        "dataConfig": {
+          "pressure_surge_lines": {
+            "source": "metric",
+            "metricKey": "merged_anomaly_statistics_summary_v1",
+            "fieldName": "pressure_surge_lines",
+            "bindings": {
+              "query": {
+                "fleet_name": "fleet_name",
+                "pad_name": "pad_name",
+                "well_name": "well_name"
+              },
+              "required": ["fleet_name", "pad_name", "well_name"]
+            }
+          }
+        },
+        "renderConfig": {
+          "library": "Custom",
+          "options": {
+            "type": "stat-v2",
+            "fieldsMap": {
+              "value": "pressure_surge_lines"
+            },
+            "valueLabel": "Pressure Surges",
+            "size": "xl",
+            "formatTemplate": "{{ value | int }}",
+            "color": "warning"
+          }
+        }
+      },
+      {
+        "id": "rate_events",
+        "title": "Pump Rate Drops",
+        "chrome": {
+          "showActions": false,
+          "padding": 8,
+          "disableCard": false
+        },
+        "dataConfig": {
+          "pump_rate_drop_lines": {
+            "source": "metric",
+            "metricKey": "merged_anomaly_statistics_summary_v1",
+            "fieldName": "pump_rate_drop_lines",
+            "bindings": {
+              "query": {
+                "fleet_name": "fleet_name",
+                "pad_name": "pad_name",
+                "well_name": "well_name"
+              },
+              "required": ["fleet_name", "pad_name", "well_name"]
+            }
+          }
+        },
+        "renderConfig": {
+          "library": "Custom",
+          "options": {
+            "type": "stat-v2",
+            "fieldsMap": {
+              "value": "pump_rate_drop_lines"
+            },
+            "valueLabel": "Pump Rate Drops",
+            "size": "xl",
+            "formatTemplate": "{{ value | int }}",
+            "color": "primary"
+          }
+        }
+      },
+      {
+        "id": "shutdown_events",
+        "title": "Mid-Stage Shutdowns",
+        "chrome": {
+          "showActions": false,
+          "padding": 8,
+          "disableCard": false
+        },
+        "dataConfig": {
+          "mid_stage_shutdown_lines": {
+            "source": "metric",
+            "metricKey": "merged_anomaly_statistics_summary_v1",
+            "fieldName": "mid_stage_shutdown_lines",
+            "bindings": {
+              "query": {
+                "fleet_name": "fleet_name",
+                "pad_name": "pad_name",
+                "well_name": "well_name"
+              },
+              "required": ["fleet_name", "pad_name", "well_name"]
+            }
+          }
+        },
+        "renderConfig": {
+          "library": "Custom",
+          "options": {
+            "type": "stat-v2",
+            "fieldsMap": {
+              "value": "mid_stage_shutdown_lines"
+            },
+            "valueLabel": "Mid-Stage Shutdowns",
+            "size": "xl",
+            "formatTemplate": "{{ value | int }}"
+          }
+        }
+      },
+      {
+        "id": "sweep_events",
+        "title": "Sweep Segments",
+        "chrome": {
+          "showActions": false,
+          "padding": 8,
+          "disableCard": false
+        },
+        "dataConfig": {
+          "sweep_lines": {
+            "source": "metric",
+            "metricKey": "merged_anomaly_statistics_summary_v1",
+            "fieldName": "sweep_lines",
+            "bindings": {
+              "query": {
+                "fleet_name": "fleet_name",
+                "pad_name": "pad_name",
+                "well_name": "well_name"
+              },
+              "required": ["fleet_name", "pad_name", "well_name"]
+            }
+          }
+        },
+        "renderConfig": {
+          "library": "Custom",
+          "options": {
+            "type": "stat-v2",
+            "fieldsMap": {
+              "value": "sweep_lines"
+            },
+            "valueLabel": "Sweep Segments",
+            "size": "xl",
+            "formatTemplate": "{{ value | int }}",
+            "color": "success"
+          }
+        }
+      },
+      {
+        "id": "type_distribution",
+        "title": "Aggregate Anomaly Segments",
+        "chrome": {
+          "showActions": false,
+          "padding": 8,
+          "disableCard": false
+        },
+        "dataConfig": {
+          "types": {
+            "source": "metric",
+            "metricKey": "merged_anomaly_statistics_types_v1",
+            "fieldName": "*",
+            "bindings": {
+              "query": {
+                "fleet_name": "fleet_name",
+                "pad_name": "pad_name",
+                "well_name": "well_name"
+              },
+              "required": ["fleet_name", "pad_name", "well_name"]
+            }
+          }
+        },
+        "renderConfig": {
+          "library": "ReactECharts",
+          "options": {
+            "tooltip": {
+              "trigger": "item"
+            },
+            "grid": {
+              "top": 20,
+              "left": 150,
+              "right": 30,
+              "bottom": 35,
+              "containLabel": true
+            },
+            "xAxis": {
+              "type": "value",
+              "name": "Segments"
+            },
+            "yAxis": {
+              "type": "category"
+            },
+            "dataset": {
+              "source": "data:dataset",
+              "dimensions": [
+                "types.anomaly_type",
+                "types.anomaly_lines",
+                "types.color"
+              ]
+            },
+            "series": [
+              {
+                "type": "bar",
+                "encode": {
+                  "x": "types.anomaly_lines",
+                  "y": "types.anomaly_type",
+                  "tooltip": ["types.anomaly_type", "types.anomaly_lines"]
+                },
+                "itemStyle": {
+                  "color": "functionString:return params.value[2]"
+                },
+                "barMaxWidth": 34,
+                "label": {
+                  "show": true,
+                  "position": "right"
+                }
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "well_totals",
+        "title": "Anomalous Segments by Well",
+        "chrome": {
+          "showActions": false,
+          "padding": 8,
+          "disableCard": false
+        },
+        "dataConfig": {
+          "wells": {
+            "source": "metric",
+            "metricKey": "merged_anomaly_statistics_wells_v1",
+            "fieldName": "*",
+            "bindings": {
+              "query": {
+                "fleet_name": "fleet_name",
+                "pad_name": "pad_name",
+                "well_name": "well_name"
+              },
+              "required": ["fleet_name", "pad_name", "well_name"]
+            }
+          }
+        },
+        "renderConfig": {
+          "library": "ReactECharts",
+          "options": {
+            "tooltip": {
+              "trigger": "axis",
+              "axisPointer": {
+                "type": "shadow"
+              }
+            },
+            "legend": {
+              "top": 0
+            },
+            "grid": {
+              "top": 45,
+              "left": 170,
+              "right": 30,
+              "bottom": 35,
+              "containLabel": true
+            },
+            "xAxis": {
+              "type": "value",
+              "name": "Segments"
+            },
+            "yAxis": {
+              "type": "category",
+              "axisLabel": {
+                "hideOverlap": true
+              }
+            },
+            "dataZoom": [
+              {
+                "type": "inside",
+                "yAxisIndex": 0
+              },
+              {
+                "type": "slider",
+                "yAxisIndex": 0,
+                "right": 5,
+                "width": 16
+              }
+            ],
+            "dataset": {
+              "source": "data:dataset",
+              "dimensions": [
+                "wells.well_name",
+                "wells.pressure_surge_lines",
+                "wells.pump_rate_drop_lines",
+                "wells.mid_stage_shutdown_lines",
+                "wells.sweep_lines"
+              ]
+            },
+            "series": [
+              {
+                "name": "Pressure Surges",
+                "type": "bar",
+                "stack": "total",
+                "encode": {
+                  "x": "wells.pressure_surge_lines",
+                  "y": "wells.well_name"
+                },
+                "color": "#D35400"
+              },
+              {
+                "name": "Pump Rate Drops",
+                "type": "bar",
+                "stack": "total",
+                "encode": {
+                  "x": "wells.pump_rate_drop_lines",
+                  "y": "wells.well_name"
+                },
+                "color": "#2878B5"
+              },
+              {
+                "name": "Mid-Stage Shutdowns",
+                "type": "bar",
+                "stack": "total",
+                "encode": {
+                  "x": "wells.mid_stage_shutdown_lines",
+                  "y": "wells.well_name"
+                },
+                "color": "#30343B"
+              },
+              {
+                "name": "Sweep",
+                "type": "bar",
+                "stack": "total",
+                "encode": {
+                  "x": "wells.sweep_lines",
+                  "y": "wells.well_name"
+                },
+                "color": "#2A9D6F"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "stage_summary",
+        "title": "Per-Stage Summary",
+        "chrome": {
+          "showActions": false,
+          "padding": 8,
+          "disableCard": false
+        },
+        "dataConfig": {
+          "stages": {
+            "source": "metric",
+            "metricKey": "merged_anomaly_statistics_stages_v1",
+            "fieldName": "*",
+            "bindings": {
+              "query": {
+                "fleet_name": "fleet_name",
+                "pad_name": "pad_name",
+                "well_name": "well_name"
+              },
+              "required": ["fleet_name", "pad_name", "well_name"]
+            }
+          }
+        },
+        "renderConfig": {
+          "library": "Custom",
+          "options": {
+            "type": "table",
+            "config": {
+              "columns": [
+                {
+                  "key": "well_name",
+                  "label": "Well",
+                  "minWidth": 220,
+                  "truncate": true
+                },
+                {
+                  "key": "stage_num",
+                  "label": "Stage",
+                  "minWidth": 75
+                },
+                {
+                  "key": "total_anomaly_lines",
+                  "label": "Total",
+                  "minWidth": 80
+                },
+                {
+                  "key": "pressure_surge_lines",
+                  "label": "Pressure",
+                  "minWidth": 95
+                },
+                {
+                  "key": "pump_rate_drop_lines",
+                  "label": "Rate Drop",
+                  "minWidth": 95
+                },
+                {
+                  "key": "mid_stage_shutdown_lines",
+                  "label": "Shutdown",
+                  "minWidth": 95
+                },
+                {
+                  "key": "sweep_lines",
+                  "label": "Sweep",
+                  "minWidth": 80
+                },
+                {
+                  "key": "stage_start_ts",
+                  "label": "Start",
+                  "minWidth": 155
+                },
+                {
+                  "key": "stage_end_ts",
+                  "label": "End",
+                  "minWidth": 155
+                }
+              ],
+              "dataset": {
+                "source": "data:dataset",
+                "dimensions": [
+                  "stages.well_name",
+                  "stages.stage_num",
+                  "stages.total_anomaly_lines",
+                  "stages.pressure_surge_lines",
+                  "stages.pump_rate_drop_lines",
+                  "stages.mid_stage_shutdown_lines",
+                  "stages.sweep_lines",
+                  "stages.stage_start_ts",
+                  "stages.stage_end_ts"
+                ]
+              },
+              "pagination": {
+                "pageSize": 25
+              }
+            },
+            "ui": {
+              "variant": "bordered",
+              "borderStyle": "all",
+              "enablePagination": true,
+              "rowsPerPage": 25,
+              "maxBodyHeight": 420,
+              "stickyHeader": true,
+              "cellHeight": "sm"
+            }
+          }
+        }
+      },
+      {
+        "id": "event_drilldown",
+        "title": "Anomaly Event Drilldown",
+        "chrome": {
+          "showActions": false,
+          "padding": 8,
+          "disableCard": false
+        },
+        "dataConfig": {
+          "events": {
+            "source": "metric",
+            "metricKey": "merged_anomaly_statistics_events_v1",
+            "fieldName": "*",
+            "bindings": {
+              "query": {
+                "fleet_name": "fleet_name",
+                "pad_name": "pad_name",
+                "well_name": "well_name"
+              },
+              "required": ["fleet_name", "pad_name", "well_name"]
+            }
+          }
+        },
+        "renderConfig": {
+          "library": "Custom",
+          "options": {
+            "type": "table",
+            "config": {
+              "columns": [
+                {
+                  "key": "well_name",
+                  "label": "Well",
+                  "minWidth": 220,
+                  "truncate": true
+                },
+                {
+                  "key": "stage_num",
+                  "label": "Stage",
+                  "minWidth": 75
+                },
+                {
+                  "key": "anomaly_display",
+                  "label": "Anomaly",
+                  "minWidth": 165
+                },
+                {
+                  "key": "start_ts",
+                  "label": "Start",
+                  "minWidth": 165
+                },
+                {
+                  "key": "end_ts",
+                  "label": "End",
+                  "minWidth": 165
+                },
+                {
+                  "key": "duration_sec",
+                  "label": "Duration (s)",
+                  "minWidth": 110
+                }
+              ],
+              "dataset": {
+                "source": "data:dataset",
+                "dimensions": [
+                  "events.well_name",
+                  "events.stage_num",
+                  "events.anomaly_display",
+                  "events.start_ts",
+                  "events.end_ts",
+                  "events.duration_sec"
+                ]
+              },
+              "pagination": {
+                "pageSize": 25
+              }
+            },
+            "ui": {
+              "variant": "bordered",
+              "borderStyle": "all",
+              "enablePagination": true,
+              "rowsPerPage": 25,
+              "maxBodyHeight": 420,
+              "stickyHeader": true,
+              "cellHeight": "sm"
+            }
+          }
+        }
+      },
+      {
+        "id": "stage_filter",
+        "title": "Stage Anomaly Segments",
+        "chrome": {
+          "showActions": false,
+          "hideTitle": false,
+          "padding": 8,
+          "disableCard": false
+        },
+        "renderConfig": {
+          "library": "Custom",
+          "options": {
+            "type": "select",
+            "config": {
+              "placeholder": "Select stage",
+              "selectionMode": "single",
+              "optionsMetric": {
+                "metricKey": "merged_presence_stage_options_v1",
+                "params": {
+                  "well_name": "{{state.well_name}}"
+                },
+                "required": ["well_name"],
+                "valuePath": "value",
+                "labelPath": "label"
+              },
+              "value": "{{state.stage_num}}"
+            },
+            "ui": {
+              "size": "sm",
+              "variant": "bordered",
+              "radius": "sm",
+              "fullWidth": false,
+              "width": 320
+            }
+          }
+        },
+        "events": {
+          "onChange": [
+            {
+              "type": "set_state",
+              "updates": {
+                "stage_num": "{{event.lastSelectedValue}}"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": "stage_segments",
+        "title": "Stage Overview with Anomaly Segments",
+        "description": "Raw stage telemetry with active anomaly windows.",
+        "isDataLarge": true,
+        "chrome": {
+          "showActions": false,
+          "padding": 8,
+          "disableCard": false
+        },
+        "dataConfig": {
+          "chart_data": {
+            "source": "metric",
+            "metricKey": "merged_presence_stage_drilldown_v1",
+            "fieldName": "*",
+            "bindings": {
+              "query": {
+                "well_name": "well_name",
+                "stage_num": "stage_num"
+              },
+              "required": ["well_name", "stage_num"]
+            }
+          },
+          "events": {
+            "source": "metric",
+            "metricKey": "merged_anomaly_stage_events_v1",
+            "fieldName": "*",
+            "bindings": {
+              "query": {
+                "well_name": "well_name",
+                "stage_num": "stage_num"
+              },
+              "required": ["well_name", "stage_num"]
+            }
+          }
+        },
+        "renderConfig": {
+          "library": "Custom",
+          "options": {
+            "type": "enhanced-echart",
+            "config": {
+              "chartId": "anomaly_stage_segments",
+              "option": {
+                "grid": {
+                  "top": 42,
+                  "left": 80,
+                  "right": 130,
+                  "bottom": 70,
+                  "containLabel": true
+                },
+                "legend": {
+                  "top": 0
+                },
+                "xAxis": {
+                  "id": "X",
+                  "type": "time",
+                  "name": "Time",
+                  "axisLabel": {
+                    "formatter": "{HH}:{mm}",
+                    "rotate": 30
+                  }
+                },
+                "yAxis": [
+                  {
+                    "id": "Y_pressure",
+                    "type": "value",
+                    "name": "Pressure",
+                    "position": "left"
+                  },
+                  {
+                    "id": "Y_rate",
+                    "type": "value",
+                    "name": "Rate",
+                    "position": "right"
+                  },
+                  {
+                    "id": "Y_conc",
+                    "type": "value",
+                    "name": "Concentration",
+                    "position": "right",
+                    "offset": 60
+                  }
+                ],
+                "tooltip": {
+                  "trigger": "axis",
+                  "axisPointer": {
+                    "type": "cross"
+                  }
+                },
+                "dataZoom": [
+                  {
+                    "type": "inside",
+                    "xAxisIndex": 0,
+                    "filterMode": "none"
+                  },
+                  {
+                    "type": "slider",
+                    "xAxisIndex": 0,
+                    "bottom": 10,
+                    "height": 18,
+                    "filterMode": "none"
+                  }
+                ],
+                "dataset": [
+                  {
+                    "source": "data:dataset",
+                    "dimensions": [
+                      "chart_data.timestamp",
+                      "chart_data.press_mainline",
+                      "chart_data.rate_slurry",
+                      "chart_data.selected_concentration"
+                    ]
+                  }
+                ],
+                "series": [
+                  {
+                    "name": "Pressure",
+                    "type": "line",
+                    "datasetIndex": 0,
+                    "xAxisId": "X",
+                    "yAxisId": "Y_pressure",
+                    "showSymbol": false,
+                    "sampling": "lttb",
+                    "encode": {
+                      "x": "chart_data.timestamp",
+                      "y": "chart_data.press_mainline"
+                    },
+                    "lineStyle": {
+                      "width": 1.4
+                    },
+                    "color": "#D94A73"
+                  },
+                  {
+                    "name": "Rate",
+                    "type": "line",
+                    "datasetIndex": 0,
+                    "xAxisId": "X",
+                    "yAxisId": "Y_rate",
+                    "showSymbol": false,
+                    "sampling": "lttb",
+                    "encode": {
+                      "x": "chart_data.timestamp",
+                      "y": "chart_data.rate_slurry"
+                    },
+                    "lineStyle": {
+                      "width": 1.4
+                    },
+                    "color": "#3F57C4"
+                  },
+                  {
+                    "name": "Concentration",
+                    "type": "line",
+                    "datasetIndex": 0,
+                    "xAxisId": "X",
+                    "yAxisId": "Y_conc",
+                    "showSymbol": false,
+                    "sampling": "lttb",
+                    "encode": {
+                      "x": "chart_data.timestamp",
+                      "y": "chart_data.selected_concentration"
+                    },
+                    "lineStyle": {
+                      "width": 1.4
+                    },
+                    "color": "#D99224"
+                  },
+                  {
+                    "name": "Anomaly Segments",
+                    "type": "line",
+                    "data": [],
+                    "xAxisId": "X",
+                    "yAxisId": "Y_pressure",
+                    "symbol": "none",
+                    "lineStyle": {
+                      "opacity": 0
+                    },
+                    "markArea": {
+                      "silent": false,
+                      "label": {
+                        "show": false
+                      },
+                      "data": "function:windowMarkAreaV2(data=data:events, labelField=anomaly_display, startField=start_ts, endField=end_ts, colorField=color)"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    ],
+    "views": [
+      {
+        "id": "main",
+        "title": "Nix Anomaly Statistics",
+        "presentation": {
+          "type": "page",
+          "gridMargin": [12, 8]
+        },
+        "layout": [
+          {
+            "instanceId": "scope_main",
+            "widgetId": "scope",
+            "gridPos": {
+              "x": 0,
+              "y": 0,
+              "w": 24,
+              "h": 3
+            }
+          },
+          {
+            "instanceId": "total_wells_main",
+            "widgetId": "total_wells",
+            "gridPos": {
+              "x": 0,
+              "y": 3,
+              "w": 6,
+              "h": 3
+            }
+          },
+          {
+            "instanceId": "total_stages_main",
+            "widgetId": "total_stages",
+            "gridPos": {
+              "x": 6,
+              "y": 3,
+              "w": 6,
+              "h": 3
+            }
+          },
+          {
+            "instanceId": "affected_stages_main",
+            "widgetId": "affected_stages",
+            "gridPos": {
+              "x": 12,
+              "y": 3,
+              "w": 6,
+              "h": 3
+            }
+          },
+          {
+            "instanceId": "total_events_main",
+            "widgetId": "total_events",
+            "gridPos": {
+              "x": 18,
+              "y": 3,
+              "w": 6,
+              "h": 3
+            }
+          },
+          {
+            "instanceId": "pressure_events_main",
+            "widgetId": "pressure_events",
+            "gridPos": {
+              "x": 0,
+              "y": 6,
+              "w": 6,
+              "h": 3
+            }
+          },
+          {
+            "instanceId": "rate_events_main",
+            "widgetId": "rate_events",
+            "gridPos": {
+              "x": 6,
+              "y": 6,
+              "w": 6,
+              "h": 3
+            }
+          },
+          {
+            "instanceId": "shutdown_events_main",
+            "widgetId": "shutdown_events",
+            "gridPos": {
+              "x": 12,
+              "y": 6,
+              "w": 6,
+              "h": 3
+            }
+          },
+          {
+            "instanceId": "sweep_events_main",
+            "widgetId": "sweep_events",
+            "gridPos": {
+              "x": 18,
+              "y": 6,
+              "w": 6,
+              "h": 3
+            }
+          },
+          {
+            "instanceId": "type_distribution_main",
+            "widgetId": "type_distribution",
+            "gridPos": {
+              "x": 0,
+              "y": 9,
+              "w": 8,
+              "h": 9
+            }
+          },
+          {
+            "instanceId": "well_totals_main",
+            "widgetId": "well_totals",
+            "gridPos": {
+              "x": 8,
+              "y": 9,
+              "w": 16,
+              "h": 9
+            }
+          },
+          {
+            "instanceId": "stage_summary_main",
+            "widgetId": "stage_summary",
+            "gridPos": {
+              "x": 0,
+              "y": 18,
+              "w": 24,
+              "h": 12
+            }
+          },
+          {
+            "instanceId": "event_drilldown_main",
+            "widgetId": "event_drilldown",
+            "gridPos": {
+              "x": 0,
+              "y": 49,
+              "w": 24,
+              "h": 12
+            }
+          },
+          {
+            "instanceId": "stage_filter_main",
+            "widgetId": "stage_filter",
+            "gridPos": {
+              "x": 0,
+              "y": 30,
+              "w": 24,
+              "h": 3
+            }
+          },
+          {
+            "instanceId": "stage_segments_main",
+            "widgetId": "stage_segments",
+            "gridPos": {
+              "x": 0,
+              "y": 33,
+              "w": 24,
+              "h": 16
+            },
+            "visibleWhen": [
+              {
+                "ref": "state.stage_num",
+                "op": "ne",
+                "value": "-1"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

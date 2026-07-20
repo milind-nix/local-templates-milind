@@ -1,0 +1,50 @@
+{
+  "key": "merged_stage_execution_wells_v1",
+  "displayName": "Merged Stage Execution by Well",
+  "description": "Average score by well for one selected fleet and pad.",
+  "sql": "SELECT * FROM (\nSELECT\n  s.name AS well_name,\n  ROUND(AVG(s.composite_score)::numeric, 1) AS average_score,\n  COUNT(*)::bigint AS stage_count,\n  MIN(s.composite_score) AS lowest_score,\n  CASE\n    WHEN AVG(s.composite_score) >= 70 THEN '#2A9D6F'\n    WHEN AVG(s.composite_score) >= 45 THEN '#E6A23C'\n    ELSE '#D9534F'\n  END AS color\nFROM featurestore:merged_stage_execution_scores_v1 s\nWHERE s.formula_version = :formula_version\nAND s.normalization_version = :normalization_version\n  AND s.fleet_name = :fleet_name\n  AND s.pad_name = :pad_name\nGROUP BY s.name\nORDER BY average_score, s.name\n) q",
+  "valueSchema": {
+    "type": "object",
+    "properties": {
+      "well_name": {
+        "type": "string"
+      },
+      "average_score": {
+        "type": "number"
+      },
+      "stage_count": {
+        "type": "bigint"
+      },
+      "lowest_score": {
+        "type": "number"
+      },
+      "color": {
+        "type": "string"
+      }
+    },
+    "required": []
+  },
+  "paramsSchema": {
+    "type": "object",
+    "properties": {
+      "fleet_name": {
+        "type": "string"
+      },
+      "pad_name": {
+        "type": "string"
+      },
+      "formula_version": {
+        "type": "string"
+      },
+      "normalization_version": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "fleet_name",
+      "pad_name",
+      "formula_version",
+      "normalization_version"
+    ]
+  }
+}

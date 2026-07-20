@@ -1,0 +1,1059 @@
+{
+  "key": "stage_execution_quality_merged_v1",
+  "displayName": "Stage Execution Quality Score",
+  "description": "DS-canonical telemetry-only stage execution scoring and Platinum stage review.",
+  "order": 33,
+  "config": {
+    "updateInterval": "5m",
+    "specVersion": "v2"
+  },
+  "paramsSchema": {
+    "type": "object",
+    "properties": {},
+    "required": []
+  },
+  "filters": [],
+  "charts": [],
+  "spec": {
+    "specVersion": "v2",
+    "theme": {
+      "preset": "corporate"
+    },
+    "state": {
+      "params": {
+        "fleet_name": {
+          "type": "string",
+          "default": null
+        },
+        "pad_name": {
+          "type": "string",
+          "default": null
+        },
+        "well_name": {
+          "type": "string",
+          "default": null
+        },
+        "drilldown_well": {
+          "type": "string",
+          "default": null
+        },
+        "drilldown_stage": {
+          "type": "string",
+          "default": null
+        },
+        "formula_version": {
+          "type": "string",
+          "default": "stage-execution-v1.0"
+        },
+        "normalization_version": {
+          "type": "string",
+          "default": "percentile-v1"
+        }
+      }
+    },
+    "navigation": {
+      "initialView": "main"
+    },
+    "widgets": [
+      {
+        "id": "global_average_score",
+        "title": "Global Average Composite Score",
+        "chrome": {
+          "showActions": false,
+          "padding": 8,
+          "disableCard": false
+        },
+        "dataConfig": {
+          "average_score": {
+            "source": "metric",
+            "metricKey": "merged_stage_execution_global_summary_v1",
+            "fieldName": "average_score",
+            "bindings": {
+              "query": {
+                "formula_version": "formula_version",
+                "normalization_version": "normalization_version"
+              },
+              "required": ["formula_version", "normalization_version"]
+            }
+          }
+        },
+        "renderConfig": {
+          "library": "Custom",
+          "options": {
+            "type": "stat-v2",
+            "fieldsMap": {
+              "value": "average_score"
+            },
+            "valueLabel": "Global Average",
+            "size": "xl",
+            "formatTemplate": "{{ value }} / 100"
+          }
+        }
+      },
+      {
+        "id": "global_stages_scored",
+        "title": "Global Stages Scored",
+        "chrome": {
+          "showActions": false,
+          "padding": 8,
+          "disableCard": false
+        },
+        "dataConfig": {
+          "stages_scored": {
+            "source": "metric",
+            "metricKey": "merged_stage_execution_global_summary_v1",
+            "fieldName": "stages_scored",
+            "bindings": {
+              "query": {
+                "formula_version": "formula_version",
+                "normalization_version": "normalization_version"
+              },
+              "required": ["formula_version", "normalization_version"]
+            }
+          }
+        },
+        "renderConfig": {
+          "library": "Custom",
+          "options": {
+            "type": "stat-v2",
+            "fieldsMap": {
+              "value": "stages_scored"
+            },
+            "valueLabel": "Stages Scored",
+            "size": "xl",
+            "formatTemplate": "{{ value | int }}"
+          }
+        }
+      },
+      {
+        "id": "global_lowest_score",
+        "title": "Global Lowest Score",
+        "chrome": {
+          "showActions": false,
+          "padding": 8,
+          "disableCard": false
+        },
+        "dataConfig": {
+          "lowest_score": {
+            "source": "metric",
+            "metricKey": "merged_stage_execution_global_summary_v1",
+            "fieldName": "lowest_score",
+            "bindings": {
+              "query": {
+                "formula_version": "formula_version",
+                "normalization_version": "normalization_version"
+              },
+              "required": ["formula_version", "normalization_version"]
+            }
+          }
+        },
+        "renderConfig": {
+          "library": "Custom",
+          "options": {
+            "type": "stat-v2",
+            "fieldsMap": {
+              "value": "lowest_score"
+            },
+            "valueLabel": "Lowest Score",
+            "size": "xl",
+            "formatTemplate": "{{ value }}"
+          }
+        }
+      },
+      {
+        "id": "family_scores",
+        "title": "Average Composite Score by Fleet and Pad",
+        "description": "Fleet and pad are used as the operational well-family grouping. Lower scores appear first.",
+        "chrome": {
+          "showActions": false,
+          "padding": 8,
+          "disableCard": false
+        },
+        "dataConfig": {
+          "families": {
+            "source": "metric",
+            "metricKey": "merged_stage_execution_families_v1",
+            "fieldName": "*",
+            "bindings": {
+              "query": {
+                "formula_version": "formula_version",
+                "normalization_version": "normalization_version"
+              },
+              "required": ["formula_version", "normalization_version"]
+            }
+          }
+        },
+        "renderConfig": {
+          "library": "ReactECharts",
+          "options": {
+            "tooltip": {
+              "trigger": "axis",
+              "axisPointer": {
+                "type": "shadow"
+              }
+            },
+            "grid": {
+              "top": 20,
+              "left": 230,
+              "right": 45,
+              "bottom": 35,
+              "containLabel": true
+            },
+            "xAxis": {
+              "type": "value",
+              "name": "Average Score",
+              "min": 0,
+              "max": 100
+            },
+            "yAxis": {
+              "type": "category",
+              "axisLabel": {
+                "hideOverlap": true
+              }
+            },
+            "dataZoom": [
+              {
+                "type": "inside",
+                "yAxisIndex": 0
+              },
+              {
+                "type": "slider",
+                "yAxisIndex": 0,
+                "right": 5,
+                "width": 16
+              }
+            ],
+            "dataset": {
+              "source": "data:dataset",
+              "dimensions": [
+                "families.family_name",
+                "families.average_score",
+                "families.stage_count",
+                "families.well_count",
+                "families.color"
+              ]
+            },
+            "series": [
+              {
+                "type": "bar",
+                "encode": {
+                  "x": "families.average_score",
+                  "y": "families.family_name",
+                  "tooltip": [
+                    "families.family_name",
+                    "families.average_score",
+                    "families.well_count",
+                    "families.stage_count"
+                  ]
+                },
+                "itemStyle": {
+                  "color": "functionString:return params.value[4]"
+                },
+                "barMaxWidth": 30,
+                "label": {
+                  "show": true,
+                  "position": "right"
+                }
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "scope",
+        "title": "Select Fleet and Pad",
+        "chrome": {
+          "showActions": false,
+          "padding": 8,
+          "disableCard": false,
+          "hideTitle": true
+        },
+        "renderConfig": {
+          "library": "Custom",
+          "options": {
+            "type": "form",
+            "config": {
+              "schema": {
+                "type": "object",
+                "required": ["fleet_name", "pad_name"],
+                "properties": {
+                  "fleet_name": {
+                    "type": "string",
+                    "metadata": {
+                      "ui": {
+                        "label": "Fleet",
+                        "component": "select",
+                        "placeholder": "Select fleet",
+                        "optionsMetric": {
+                          "metricKey": "merged_fleet_options_v1",
+                          "valuePath": "value",
+                          "labelPath": "label"
+                        },
+                        "onChangeEventId": "fleet_changed"
+                      }
+                    }
+                  },
+                  "pad_name": {
+                    "type": "string",
+                    "metadata": {
+                      "ui": {
+                        "label": "Pad",
+                        "component": "select",
+                        "placeholder": "Select pad",
+                        "optionsMetric": {
+                          "metricKey": "merged_pad_options_v1",
+                          "params": {
+                            "fleet_name": "{{form.fleet_name}}"
+                          },
+                          "valuePath": "value",
+                          "labelPath": "label"
+                        },
+                        "onChangeEventId": "pad_changed"
+                      }
+                    }
+                  }
+                }
+              },
+              "layout": {
+                "cols": 12,
+                "gap": 10,
+                "rows": [
+                  {
+                    "items": [
+                      {
+                        "type": "field",
+                        "key": "fleet_name",
+                        "colSpan": 5
+                      },
+                      {
+                        "type": "field",
+                        "key": "pad_name",
+                        "colSpan": 5
+                      },
+                      {
+                        "type": "button",
+                        "key": "apply",
+                        "colSpan": 2,
+                        "align": "end"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "actions": [
+                {
+                  "id": "apply",
+                  "label": "Apply",
+                  "kind": "submit",
+                  "eventId": "apply",
+                  "ui": {
+                    "color": "primary",
+                    "variant": "solid",
+                    "size": "sm",
+                    "radius": "sm",
+                    "fullWidth": true
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "events": {
+          "fleet_changed": [
+            {
+              "type": "set_form_values",
+              "updates": {
+                "fleet_name": "{{form.fleet_name}}",
+                "pad_name": null
+              }
+            }
+          ],
+          "pad_changed": [
+            {
+              "type": "set_form_values",
+              "updates": {
+                "fleet_name": "{{form.fleet_name}}",
+                "pad_name": "{{form.pad_name}}"
+              }
+            }
+          ],
+          "apply": [
+            {
+              "type": "set_state",
+              "updates": {
+                "fleet_name": "{{form.fleet_name}}",
+                "pad_name": "{{form.pad_name}}",
+                "well_name": null,
+                "drilldown_well": null,
+                "drilldown_stage": null
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": "well_scores",
+        "title": "Average Composite Score by Well",
+        "description": "Lower-scoring wells are shown first.",
+        "chrome": {
+          "showActions": false,
+          "padding": 8,
+          "disableCard": false
+        },
+        "dataConfig": {
+          "wells": {
+            "source": "metric",
+            "metricKey": "merged_stage_execution_wells_v1",
+            "fieldName": "*",
+            "bindings": {
+              "query": {
+                "fleet_name": "fleet_name",
+                "pad_name": "pad_name",
+                "formula_version": "formula_version",
+                "normalization_version": "normalization_version"
+              },
+              "required": [
+                "fleet_name",
+                "pad_name",
+                "formula_version",
+                "normalization_version"
+              ]
+            }
+          }
+        },
+        "renderConfig": {
+          "library": "ReactECharts",
+          "options": {
+            "tooltip": {
+              "trigger": "axis",
+              "axisPointer": {
+                "type": "shadow"
+              }
+            },
+            "grid": {
+              "top": 20,
+              "left": 200,
+              "right": 45,
+              "bottom": 35,
+              "containLabel": true
+            },
+            "xAxis": {
+              "type": "value",
+              "name": "Average Score",
+              "min": 0,
+              "max": 100
+            },
+            "yAxis": {
+              "type": "category",
+              "axisLabel": {
+                "hideOverlap": true
+              }
+            },
+            "dataZoom": [
+              {
+                "type": "inside",
+                "yAxisIndex": 0
+              },
+              {
+                "type": "slider",
+                "yAxisIndex": 0,
+                "right": 5,
+                "width": 16
+              }
+            ],
+            "dataset": {
+              "source": "data:dataset",
+              "dimensions": [
+                "wells.well_name",
+                "wells.average_score",
+                "wells.stage_count",
+                "wells.lowest_score",
+                "wells.color"
+              ]
+            },
+            "series": [
+              {
+                "type": "bar",
+                "encode": {
+                  "x": "wells.average_score",
+                  "y": "wells.well_name",
+                  "tooltip": [
+                    "wells.well_name",
+                    "wells.average_score",
+                    "wells.stage_count",
+                    "wells.lowest_score"
+                  ]
+                },
+                "itemStyle": {
+                  "color": "functionString:return params.value[4]"
+                },
+                "barMaxWidth": 30,
+                "label": {
+                  "show": true,
+                  "position": "right"
+                }
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "well_filter",
+        "title": "Select Well for Stage Ranking",
+        "chrome": {
+          "showActions": false,
+          "padding": 8,
+          "disableCard": false,
+          "hideTitle": true
+        },
+        "renderConfig": {
+          "library": "Custom",
+          "options": {
+            "type": "select",
+            "config": {
+              "placeholder": "Select well for stage ranking",
+              "selectionMode": "single",
+              "optionsMetric": {
+                "metricKey": "merged_well_options_v1",
+                "params": {
+                  "fleet_name": "{{state.fleet_name}}",
+                  "pad_name": "{{state.pad_name}}"
+                },
+                "required": ["fleet_name", "pad_name"],
+                "valuePath": "value",
+                "labelPath": "label"
+              },
+              "value": "{{state.well_name}}"
+            },
+            "ui": {
+              "size": "sm",
+              "variant": "bordered",
+              "radius": "sm",
+              "fullWidth": false,
+              "width": 520
+            }
+          }
+        },
+        "events": {
+          "onChange": [
+            {
+              "type": "set_state",
+              "updates": {
+                "well_name": "{{event.lastSelectedValue}}",
+                "drilldown_well": null,
+                "drilldown_stage": null
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": "stage_ranking",
+        "title": "Stage Ranking",
+        "description": "Sorted from lowest score. Click a row to inspect its components and telemetry.",
+        "chrome": {
+          "showActions": false,
+          "padding": 8,
+          "disableCard": false
+        },
+        "dataConfig": {
+          "stages": {
+            "source": "metric",
+            "metricKey": "merged_stage_execution_stages_v1",
+            "fieldName": "*",
+            "bindings": {
+              "query": {
+                "fleet_name": "fleet_name",
+                "pad_name": "pad_name",
+                "well_name": "well_name",
+                "formula_version": "formula_version",
+                "normalization_version": "normalization_version"
+              },
+              "required": [
+                "fleet_name",
+                "pad_name",
+                "well_name",
+                "formula_version",
+                "normalization_version"
+              ]
+            }
+          }
+        },
+        "renderConfig": {
+          "library": "Custom",
+          "options": {
+            "type": "table",
+            "config": {
+              "columns": [
+                {
+                  "key": "well_name",
+                  "label": "Well",
+                  "minWidth": 220,
+                  "truncate": true
+                },
+                {
+                  "key": "stage_num",
+                  "label": "Stage",
+                  "minWidth": 70
+                },
+                {
+                  "key": "composite_score",
+                  "label": "Score",
+                  "minWidth": 75
+                },
+                {
+                  "key": "score_a",
+                  "label": "A Stability",
+                  "minWidth": 95
+                },
+                {
+                  "key": "score_b",
+                  "label": "B Events",
+                  "minWidth": 85
+                },
+                {
+                  "key": "score_c",
+                  "label": "C Substages",
+                  "minWidth": 105
+                },
+                {
+                  "key": "score_d",
+                  "label": "D Telemetry",
+                  "minWidth": 105
+                },
+                {
+                  "key": "top_driver",
+                  "label": "Top Driver",
+                  "minWidth": 170
+                }
+              ],
+              "dataset": {
+                "source": "data:dataset",
+                "dimensions": [
+                  "stages.well_name",
+                  "stages.stage_num",
+                  "stages.composite_score",
+                  "stages.score_a",
+                  "stages.score_b",
+                  "stages.score_c",
+                  "stages.score_d",
+                  "stages.top_driver",
+                  "stages.anomaly_count",
+                  "stages.substages_present",
+                  "stages.design_minutes"
+                ]
+              },
+              "pagination": {
+                "pageSize": 20
+              },
+              "rowClickEventId": "inspect_stage"
+            },
+            "ui": {
+              "variant": "bordered",
+              "borderStyle": "all",
+              "enablePagination": true,
+              "rowsPerPage": 20,
+              "maxBodyHeight": 410,
+              "stickyHeader": true,
+              "cellHeight": "sm"
+            }
+          }
+        },
+        "events": {
+          "inspect_stage": [
+            {
+              "type": "set_state",
+              "updates": {
+                "drilldown_well": "{{row.well_name}}",
+                "drilldown_stage": "{{row.stage_num}}"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": "component_breakdown",
+        "title": "Selected Stage Component Breakdown",
+        "chrome": {
+          "showActions": false,
+          "padding": 8,
+          "disableCard": false
+        },
+        "dataConfig": {
+          "components": {
+            "source": "metric",
+            "metricKey": "merged_stage_execution_breakdown_v1",
+            "fieldName": "*",
+            "bindings": {
+              "query": {
+                "well_name": "drilldown_well",
+                "stage_num": "drilldown_stage",
+                "formula_version": "formula_version",
+                "normalization_version": "normalization_version"
+              },
+              "required": [
+                "well_name",
+                "stage_num",
+                "formula_version",
+                "normalization_version"
+              ]
+            }
+          }
+        },
+        "renderConfig": {
+          "library": "ReactECharts",
+          "options": {
+            "tooltip": {
+              "trigger": "item"
+            },
+            "grid": {
+              "top": 15,
+              "left": 190,
+              "right": 40,
+              "bottom": 35,
+              "containLabel": true
+            },
+            "xAxis": {
+              "type": "value",
+              "name": "Component Score",
+              "min": 0,
+              "max": 100
+            },
+            "yAxis": {
+              "type": "category"
+            },
+            "dataset": {
+              "source": "data:dataset",
+              "dimensions": [
+                "components.component",
+                "components.score",
+                "components.weight",
+                "components.weighted_contribution",
+                "components.color"
+              ]
+            },
+            "series": [
+              {
+                "type": "bar",
+                "encode": {
+                  "x": "components.score",
+                  "y": "components.component",
+                  "tooltip": [
+                    "components.component",
+                    "components.score",
+                    "components.weight",
+                    "components.weighted_contribution"
+                  ]
+                },
+                "itemStyle": {
+                  "color": "functionString:return params.value[4]"
+                },
+                "barMaxWidth": 34,
+                "label": {
+                  "show": true,
+                  "position": "insideRight"
+                }
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "stage_drilldown",
+        "title": "Platinum Stage Drilldown",
+        "description": "Raw telemetry and automatic Platinum substage windows for the reviewed stage.",
+        "isDataLarge": true,
+        "chrome": {
+          "showActions": false,
+          "padding": 8,
+          "disableCard": false
+        },
+        "dataConfig": {
+          "chart_data": {
+            "source": "metric",
+            "metricKey": "merged_presence_stage_drilldown_v1",
+            "fieldName": "*",
+            "bindings": {
+              "query": {
+                "well_name": "drilldown_well",
+                "stage_num": "drilldown_stage"
+              },
+              "required": ["well_name", "stage_num"]
+            }
+          },
+          "windows": {
+            "source": "metric",
+            "metricKey": "merged_presence_stage_windows_v1",
+            "fieldName": "*",
+            "bindings": {
+              "query": {
+                "well_name": "drilldown_well",
+                "stage_num": "drilldown_stage"
+              },
+              "required": ["well_name", "stage_num"]
+            }
+          }
+        },
+        "renderConfig": {
+          "library": "Custom",
+          "options": {
+            "type": "enhanced-echart",
+            "config": {
+              "chartId": "stage_execution_drilldown",
+              "option": {
+                "grid": {
+                  "top": 35,
+                  "left": 80,
+                  "right": 130,
+                  "bottom": 70,
+                  "containLabel": true
+                },
+                "xAxis": {
+                  "id": "X",
+                  "type": "time",
+                  "name": "Time",
+                  "axisLabel": {
+                    "formatter": "{HH}:{mm}",
+                    "rotate": 30
+                  }
+                },
+                "yAxis": [
+                  {
+                    "id": "Y_pressure",
+                    "type": "value",
+                    "name": "Pressure",
+                    "position": "left"
+                  },
+                  {
+                    "id": "Y_rate",
+                    "type": "value",
+                    "name": "Rate",
+                    "position": "right"
+                  },
+                  {
+                    "id": "Y_conc",
+                    "type": "value",
+                    "name": "Concentration",
+                    "position": "right",
+                    "offset": 60
+                  }
+                ],
+                "tooltip": {
+                  "trigger": "axis",
+                  "axisPointer": {
+                    "type": "cross"
+                  }
+                },
+                "dataZoom": [
+                  {
+                    "type": "inside",
+                    "xAxisIndex": 0,
+                    "filterMode": "none"
+                  },
+                  {
+                    "type": "slider",
+                    "xAxisIndex": 0,
+                    "bottom": 10,
+                    "height": 18,
+                    "filterMode": "none"
+                  }
+                ],
+                "dataset": [
+                  {
+                    "source": "data:dataset",
+                    "dimensions": [
+                      "chart_data.timestamp",
+                      "chart_data.press_mainline",
+                      "chart_data.rate_slurry",
+                      "chart_data.selected_concentration"
+                    ]
+                  }
+                ],
+                "series": [
+                  {
+                    "name": "Pressure",
+                    "type": "line",
+                    "datasetIndex": 0,
+                    "xAxisId": "X",
+                    "yAxisId": "Y_pressure",
+                    "showSymbol": false,
+                    "sampling": "lttb",
+                    "encode": {
+                      "x": "chart_data.timestamp",
+                      "y": "chart_data.press_mainline"
+                    },
+                    "lineStyle": {
+                      "width": 1.5
+                    },
+                    "color": "#F33F75"
+                  },
+                  {
+                    "name": "Rate",
+                    "type": "line",
+                    "datasetIndex": 0,
+                    "xAxisId": "X",
+                    "yAxisId": "Y_rate",
+                    "showSymbol": false,
+                    "sampling": "lttb",
+                    "encode": {
+                      "x": "chart_data.timestamp",
+                      "y": "chart_data.rate_slurry"
+                    },
+                    "lineStyle": {
+                      "width": 1.5
+                    },
+                    "color": "#4B4ED6"
+                  },
+                  {
+                    "name": "Concentration",
+                    "type": "line",
+                    "datasetIndex": 0,
+                    "xAxisId": "X",
+                    "yAxisId": "Y_conc",
+                    "showSymbol": false,
+                    "sampling": "lttb",
+                    "encode": {
+                      "x": "chart_data.timestamp",
+                      "y": "chart_data.selected_concentration"
+                    },
+                    "lineStyle": {
+                      "width": 1.5
+                    },
+                    "color": "#E6982E"
+                  },
+                  {
+                    "name": "Platinum Windows",
+                    "type": "line",
+                    "data": [],
+                    "xAxisId": "X",
+                    "yAxisId": "Y_pressure",
+                    "symbol": "none",
+                    "lineStyle": {
+                      "opacity": 0
+                    },
+                    "markArea": {
+                      "silent": true,
+                      "data": "function:windowMarkAreaV2(data=data:windows, labelField=substage_label, startField=start_ts, endField=end_ts, colorField=color)"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    ],
+    "views": [
+      {
+        "id": "main",
+        "title": "Stage Execution Quality Score",
+        "presentation": {
+          "type": "page",
+          "gridMargin": [12, 8]
+        },
+        "layout": [
+          {
+            "instanceId": "global_average_score_main",
+            "widgetId": "global_average_score",
+            "gridPos": {
+              "x": 0,
+              "y": 0,
+              "w": 8,
+              "h": 3
+            }
+          },
+          {
+            "instanceId": "global_stages_scored_main",
+            "widgetId": "global_stages_scored",
+            "gridPos": {
+              "x": 8,
+              "y": 0,
+              "w": 8,
+              "h": 3
+            }
+          },
+          {
+            "instanceId": "global_lowest_score_main",
+            "widgetId": "global_lowest_score",
+            "gridPos": {
+              "x": 16,
+              "y": 0,
+              "w": 8,
+              "h": 3
+            }
+          },
+          {
+            "instanceId": "family_scores_main",
+            "widgetId": "family_scores",
+            "gridPos": {
+              "x": 0,
+              "y": 3,
+              "w": 24,
+              "h": 13
+            }
+          },
+          {
+            "instanceId": "scope_main",
+            "widgetId": "scope",
+            "gridPos": {
+              "x": 0,
+              "y": 16,
+              "w": 24,
+              "h": 3
+            }
+          },
+          {
+            "instanceId": "well_scores_main",
+            "widgetId": "well_scores",
+            "gridPos": {
+              "x": 0,
+              "y": 19,
+              "w": 24,
+              "h": 11
+            }
+          },
+          {
+            "instanceId": "well_filter_main",
+            "widgetId": "well_filter",
+            "gridPos": {
+              "x": 0,
+              "y": 30,
+              "w": 24,
+              "h": 3
+            }
+          },
+          {
+            "instanceId": "stage_ranking_main",
+            "widgetId": "stage_ranking",
+            "gridPos": {
+              "x": 0,
+              "y": 33,
+              "w": 24,
+              "h": 13
+            }
+          },
+          {
+            "instanceId": "component_breakdown_main",
+            "widgetId": "component_breakdown",
+            "gridPos": {
+              "x": 0,
+              "y": 46,
+              "w": 24,
+              "h": 9
+            }
+          },
+          {
+            "instanceId": "stage_drilldown_main",
+            "widgetId": "stage_drilldown",
+            "gridPos": {
+              "x": 0,
+              "y": 55,
+              "w": 24,
+              "h": 18
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

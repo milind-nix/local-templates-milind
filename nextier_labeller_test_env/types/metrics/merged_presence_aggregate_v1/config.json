@@ -1,0 +1,38 @@
+{
+  "key": "merged_presence_aggregate_v1",
+  "displayName": "Merged Platinum All-Wells Aggregate Presence",
+  "description": "Global presence count and percentage per Platinum substage across all wells.",
+  "sql": "SELECT * FROM (\nWITH normalized_labels AS (\n  SELECT DISTINCT\n    p.name AS well_name,\n    p.stage_num_td AS stage_num,\n    CASE\n      WHEN LOWER(p.substage) IN ('design', 'slurry') THEN 'design'\n      WHEN LOWER(p.substage) IN ('shut_off', 'shutoff', 'shut_off_period') THEN 'shut_off'\n      ELSE LOWER(p.substage)\n    END AS substage_key\n  FROM featurestore:merged_platinum_labels_v1 p\n  WHERE p.stage_num_td IS NOT NULL\n    AND p.substage IS NOT NULL\n    AND LOWER(p.substage) <> 'na'\n),\ntotal AS (\n  SELECT COUNT(DISTINCT (well_name, stage_num)) AS total_stages\n  FROM normalized_labels\n),\npresence_counts AS (\n  SELECT substage_key, COUNT(DISTINCT (well_name, stage_num)) AS present_count\n  FROM normalized_labels\n  GROUP BY substage_key\n),\nsubstage_catalog AS (\n  SELECT 1 AS sort_order, 'stage_start' AS substage_key, 'Stage Start' AS substage_label\n  UNION ALL SELECT 2, 'ramp_up', 'Ramp Up'\n  UNION ALL SELECT 3, 'design', 'Design'\n  UNION ALL SELECT 4, 'ramp_down', 'Ramp Down'\n  UNION ALL SELECT 5, 'shut_off', 'Shut-Off'\n  UNION ALL SELECT 6, 'stage_end', 'Stage End'\n)\nSELECT\n  c.sort_order,\n  c.substage_key,\n  c.substage_label,\n  COALESCE(p.present_count, 0) AS present_count,\n  t.total_stages,\n  ROUND(\n    COALESCE(COALESCE(p.present_count, 0) * 100.0 / NULLIF(t.total_stages, 0), 0)::numeric,\n    1\n  ) AS presence_percent,\n  'All Wells' AS scope_label\nFROM substage_catalog c\nCROSS JOIN total t\nLEFT JOIN presence_counts p ON p.substage_key = c.substage_key\nORDER BY c.sort_order\n) q",
+  "valueSchema": {
+    "type": "object",
+    "properties": {
+      "sort_order": {
+        "type": "number"
+      },
+      "substage_key": {
+        "type": "string"
+      },
+      "substage_label": {
+        "type": "string"
+      },
+      "present_count": {
+        "type": "number"
+      },
+      "total_stages": {
+        "type": "number"
+      },
+      "presence_percent": {
+        "type": "number"
+      },
+      "scope_label": {
+        "type": "string"
+      }
+    },
+    "required": []
+  },
+  "paramsSchema": {
+    "type": "object",
+    "properties": {},
+    "required": []
+  }
+}

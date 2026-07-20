@@ -1,0 +1,90 @@
+{
+  "key": "nextier_merged_anomaly_pipeline_v2",
+  "displayName": "Nextier Merged Anomaly Pipeline v2",
+  "description": "Stage-incremental, append-only anomaly processing using canonical nextier-dash helpers.",
+  "runtime": "prefect",
+  "flow": {
+    "entrypoint": "scripts/workflows/nextier_merged_anomaly_pipeline_v2/main.py:nextier_merged_anomaly_pipeline_v2_flow",
+    "include": [
+      "scripts/workflows/nextier_merged_anomaly_pipeline_v2/**/*.py"
+    ],
+    "tags": [
+      "nextier",
+      "merged",
+      "anomaly",
+      "v2"
+    ]
+  },
+  "deployment": {
+    "workPool": "default",
+    "timezone": "UTC",
+    "concurrencyLimit": 1,
+    "parameters": {
+      "mode": "incremental",
+      "max_stages": 25,
+      "algorithm_version": "ds-v1",
+      "pressure_threshold_psi": 200,
+      "rate_drop_threshold_bpm": 5,
+      "rolling_points": 1,
+      "max_gap_seconds": 120,
+      "dry_run": false
+    }
+  },
+  "paramsSchema": {
+    "type": "object",
+    "properties": {
+      "mode": {
+        "type": "string",
+        "enum": [
+          "incremental",
+          "historical",
+          "rebuild"
+        ],
+        "default": "incremental"
+      },
+      "max_stages": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 500,
+        "default": 25
+      },
+      "well_name": {
+        "type": "string"
+      },
+      "stage_num_td": {
+        "type": "number"
+      },
+      "algorithm_version": {
+        "type": "string",
+        "default": "ds-v1"
+      },
+      "pressure_threshold_psi": {
+        "type": "number",
+        "minimum": 0,
+        "default": 200
+      },
+      "rate_drop_threshold_bpm": {
+        "type": "number",
+        "minimum": 0,
+        "default": 5
+      },
+      "rolling_points": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 10,
+        "default": 1
+      },
+      "max_gap_seconds": {
+        "type": "number",
+        "minimum": 0,
+        "default": 120
+      },
+      "dry_run": {
+        "type": "boolean",
+        "default": false
+      }
+    },
+    "required": []
+  },
+  "initialState": {}
+}

@@ -1,0 +1,173 @@
+{
+  "key": "merged_fleet_stream_customer_rollup_v1",
+  "displayName": "Merged Fleet Stream Customer Rollup",
+  "description": "Configurable time-bucket rollups of merged fleet telemetry for fast pad and well overview dashboards.",
+  "dataSchema": {
+    "type": "object",
+    "properties": {
+      "bucket_seconds": {
+        "type": "integer",
+        "metadata": {
+          "isPrimaryKey": true
+        }
+      },
+      "bucket_ts": {
+        "type": "string",
+        "format": "date-time",
+        "metadata": {
+          "isPrimaryKey": true
+        }
+      },
+      "fleet_name": {
+        "type": "string",
+        "metadata": {
+          "isPrimaryKey": true
+        }
+      },
+      "pad_name": {
+        "type": "string",
+        "metadata": {
+          "isPrimaryKey": true
+        }
+      },
+      "name": {
+        "type": "string",
+        "metadata": {
+          "isPrimaryKey": true
+        }
+      },
+      "id": {
+        "type": "string"
+      },
+      "api_num": {
+        "type": "string"
+      },
+      "first_record_ts": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "last_record_ts": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "first_created_ts": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "last_created_ts": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "records_in_bucket": {
+        "type": "bigint"
+      },
+      "rate_slurry_avg": {
+        "type": "number"
+      },
+      "rate_slurry_min": {
+        "type": "number"
+      },
+      "rate_slurry_max": {
+        "type": "number"
+      },
+      "rate_slurry_first": {
+        "type": "number"
+      },
+      "rate_slurry_last": {
+        "type": "number"
+      },
+      "press_mainline_avg": {
+        "type": "number"
+      },
+      "press_mainline_min": {
+        "type": "number"
+      },
+      "press_mainline_max": {
+        "type": "number"
+      },
+      "press_mainline_first": {
+        "type": "number"
+      },
+      "press_mainline_last": {
+        "type": "number"
+      },
+      "prop_conc_blend_denso_avg": {
+        "type": "number"
+      },
+      "prop_conc_blend_denso_min": {
+        "type": "number"
+      },
+      "prop_conc_blend_denso_max": {
+        "type": "number"
+      },
+      "prop_conc_blend_denso_first": {
+        "type": "number"
+      },
+      "prop_conc_blend_denso_last": {
+        "type": "number"
+      },
+      "prop_conc_inline_avg": {
+        "type": "number"
+      },
+      "prop_conc_inline_min": {
+        "type": "number"
+      },
+      "prop_conc_inline_max": {
+        "type": "number"
+      },
+      "prop_conc_inline_first": {
+        "type": "number"
+      },
+      "prop_conc_inline_last": {
+        "type": "number"
+      },
+      "prop_conc_target_avg": {
+        "type": "number"
+      },
+      "prop_conc_target_min": {
+        "type": "number"
+      },
+      "prop_conc_target_max": {
+        "type": "number"
+      },
+      "prop_conc_target_first": {
+        "type": "number"
+      },
+      "prop_conc_target_last": {
+        "type": "number"
+      },
+      "prop_conc_blend_auger_avg": {
+        "type": "number"
+      },
+      "prop_conc_blend_auger_min": {
+        "type": "number"
+      },
+      "prop_conc_blend_auger_max": {
+        "type": "number"
+      },
+      "prop_conc_blend_auger_first": {
+        "type": "number"
+      },
+      "prop_conc_blend_auger_last": {
+        "type": "number"
+      },
+      "rollup_created_at": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "rollup_updated_at": {
+        "type": "string",
+        "format": "date-time"
+      }
+    },
+    "required": [
+      "bucket_seconds",
+      "bucket_ts",
+      "fleet_name",
+      "pad_name",
+      "name",
+      "records_in_bucket",
+      "rollup_updated_at"
+    ]
+  }
+}

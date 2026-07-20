@@ -1,0 +1,2052 @@
+{
+  "key": "nix_stage_segmentation_merged_v1",
+  "displayName": "Stage Detection Dashboard",
+  "description": "Merged whole-well stage segmentation comparison dashboard with TD segmentation and stage_num ground truth.",
+  "order": 6,
+  "config": {
+    "updateInterval": "5m",
+    "specVersion": "v2"
+  },
+  "paramsSchema": {
+    "type": "object",
+    "properties": {},
+    "required": []
+  },
+  "filters": [],
+  "charts": [],
+  "spec": {
+    "specVersion": "v2",
+    "theme": {
+      "preset": "corporate"
+    },
+    "state": {
+      "params": {
+        "fleet_name": {
+          "type": "string",
+          "default": null
+        },
+        "pad_name": {
+          "type": "string",
+          "default": null
+        },
+        "well_name": {
+          "type": "string",
+          "default": null
+        },
+        "start_time": {
+          "type": "string",
+          "default": null,
+          "metadata": {
+            "format": "date-time"
+          }
+        },
+        "end_time": {
+          "type": "string",
+          "default": null,
+          "metadata": {
+            "format": "date-time"
+          }
+        },
+        "chart_mode": {
+          "type": "string",
+          "default": "line"
+        },
+        "concentration_feature": {
+          "type": "string",
+          "default": "auger"
+        },
+        "data_window": {
+          "type": "string",
+          "default": "previous_6h"
+        },
+        "context_minutes": {
+          "type": "number",
+          "default": 0
+        }
+      }
+    },
+    "navigation": {
+      "initialView": "main"
+    },
+    "widgets": [
+      {
+        "id": "selection_form",
+        "title": "Selection",
+        "description": "Choose a well and time window.",
+        "chrome": {
+          "showActions": false,
+          "padding": 8,
+          "hideTitle": true
+        },
+        "renderConfig": {
+          "library": "Custom",
+          "options": {
+            "type": "form",
+            "config": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "fleet_name": {
+                    "type": "string",
+                    "metadata": {
+                      "ui": {
+                        "label": "Fleet",
+                        "component": "select",
+                        "placeholder": "Select fleet",
+                        "optionsMetric": {
+                          "metricKey": "merged_fleet_options_v1",
+                          "valuePath": "value",
+                          "labelPath": "label"
+                        },
+                        "onChangeEventId": "fleet_name_changed"
+                      }
+                    }
+                  },
+                  "pad_name": {
+                    "type": "string",
+                    "metadata": {
+                      "ui": {
+                        "label": "Pad",
+                        "component": "select",
+                        "placeholder": "Select pad",
+                        "optionsMetric": {
+                          "metricKey": "merged_pad_options_v1",
+                          "params": {
+                            "fleet_name": "{{form.fleet_name}}"
+                          },
+                          "valuePath": "value",
+                          "labelPath": "label"
+                        },
+                        "onChangeEventId": "pad_name_changed"
+                      }
+                    }
+                  },
+                  "well_name": {
+                    "type": "string",
+                    "metadata": {
+                      "ui": {
+                        "label": "Well",
+                        "component": "select",
+                        "placeholder": "Select well",
+                        "optionsMetric": {
+                          "metricKey": "merged_well_options_v1",
+                          "params": {
+                            "fleet_name": "{{form.fleet_name}}",
+                            "pad_name": "{{form.pad_name}}"
+                          },
+                          "valuePath": "value",
+                          "labelPath": "label"
+                        },
+                        "onChangeEventId": "well_name_changed"
+                      }
+                    }
+                  },
+                  "start_time": {
+                    "type": "string",
+                    "metadata": {
+                      "ui": {
+                        "label": "Start Time",
+                        "component": "date-time",
+                        "onChangeEventId": "manual_time_bounds_changed"
+                      }
+                    }
+                  },
+                  "end_time": {
+                    "type": "string",
+                    "metadata": {
+                      "ui": {
+                        "label": "End Time",
+                        "component": "date-time",
+                        "onChangeEventId": "manual_time_bounds_changed"
+                      }
+                    }
+                  },
+                  "data_window": {
+                    "type": "string",
+                    "default": "previous_6h",
+                    "metadata": {
+                      "ui": {
+                        "label": "Data Window",
+                        "component": "select",
+                        "placeholder": "Select data window",
+                        "clearable": false,
+                        "options": [
+                          {
+                            "label": "Custom",
+                            "value": "custom"
+                          },
+                          {
+                            "label": "Latest 6 hours",
+                            "value": "previous_6h"
+                          },
+                          {
+                            "label": "Latest 12 hours",
+                            "value": "previous_12h"
+                          },
+                          {
+                            "label": "Latest 48 hours",
+                            "value": "previous_48h"
+                          },
+                          {
+                            "label": "Latest 72 hours",
+                            "value": "previous_72h"
+                          },
+                          {
+                            "label": "All available data",
+                            "value": "all"
+                          }
+                        ],
+                        "onChangeEventId": "data_window_changed"
+                      }
+                    }
+                  },
+                  "context_minutes": {
+                    "type": "number",
+                    "default": 0,
+                    "metadata": {
+                      "ui": {
+                        "label": "Context (min)",
+                        "component": "number",
+                        "placeholder": "0"
+                      }
+                    }
+                  }
+                }
+              },
+              "layout": {
+                "cols": 12,
+                "gap": 12,
+                "rows": [
+                  {
+                    "items": [
+                      {
+                        "type": "field",
+                        "key": "fleet_name",
+                        "colSpan": 4
+                      },
+                      {
+                        "type": "field",
+                        "key": "pad_name",
+                        "colSpan": 4
+                      },
+                      {
+                        "type": "field",
+                        "key": "well_name",
+                        "colSpan": 4
+                      }
+                    ]
+                  },
+                  {
+                    "items": [
+                      {
+                        "type": "field",
+                        "key": "start_time",
+                        "colSpan": 3
+                      },
+                      {
+                        "type": "field",
+                        "key": "end_time",
+                        "colSpan": 3
+                      },
+                      {
+                        "type": "field",
+                        "key": "data_window",
+                        "colSpan": 3
+                      },
+                      {
+                        "type": "field",
+                        "key": "context_minutes",
+                        "colSpan": 3
+                      }
+                    ]
+                  },
+                  {
+                    "items": [
+                      {
+                        "type": "button",
+                        "key": "apply_selection",
+                        "colSpan": 4,
+                        "align": "end"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "actions": [
+                {
+                  "id": "apply_selection",
+                  "label": "Apply",
+                  "kind": "submit",
+                  "eventId": "apply_selection",
+                  "ui": {
+                    "color": "primary",
+                    "variant": "solid",
+                    "size": "sm",
+                    "radius": "sm",
+                    "fullWidth": true
+                  }
+                }
+              ],
+              "formData": {
+                "fleet_name": "{{state.fleet_name}}",
+                "pad_name": "{{state.pad_name}}",
+                "well_name": "{{state.well_name}}",
+                "start_time": "{{state.start_time}}",
+                "end_time": "{{state.end_time}}",
+                "data_window": "{{state.data_window}}",
+                "context_minutes": "{{state.context_minutes}}"
+              }
+            }
+          }
+        },
+        "events": {
+          "fleet_name_changed": [
+            {
+              "type": "set_form_values",
+              "updates": {
+                "fleet_name": "{{form.fleet_name}}",
+                "pad_name": null,
+                "well_name": null,
+                "start_time": null,
+                "end_time": null,
+                "data_window": "previous_6h",
+                "context_minutes": "{{form.context_minutes}}"
+              }
+            }
+          ],
+          "pad_name_changed": [
+            {
+              "type": "set_form_values",
+              "updates": {
+                "fleet_name": "{{form.fleet_name}}",
+                "pad_name": "{{form.pad_name}}",
+                "well_name": null,
+                "start_time": null,
+                "end_time": null,
+                "data_window": "previous_6h",
+                "context_minutes": "{{form.context_minutes}}"
+              }
+            }
+          ],
+          "well_name_changed": [
+            {
+              "type": "set_form_values",
+              "updates": {
+                "fleet_name": "{{form.fleet_name}}",
+                "pad_name": "{{form.pad_name}}",
+                "well_name": "{{form.well_name}}",
+                "start_time": null,
+                "end_time": null,
+                "data_window": "{{form.data_window}}",
+                "context_minutes": "{{form.context_minutes}}"
+              }
+            },
+            {
+              "type": "compute_metric",
+              "metricKey": "merged_detection_relative_time_bounds_v1",
+              "params": {
+                "well_name": "{{form.well_name}}",
+                "time_range": "{{form.data_window}}"
+              },
+              "resultKey": "time_bounds"
+            },
+            {
+              "type": "set_form_values",
+              "updates": {
+                "start_time": "{{context.time_bounds.first.start_time}}",
+                "end_time": "{{context.time_bounds.first.end_time}}"
+              }
+            }
+          ],
+          "apply_selection": [
+            {
+              "type": "set_view_state",
+              "updates": {
+                "fleet_name": "{{form.fleet_name}}",
+                "pad_name": "{{form.pad_name}}",
+                "well_name": "{{form.well_name}}",
+                "start_time": "{{form.start_time}}",
+                "end_time": "{{form.end_time}}",
+                "data_window": "{{form.data_window}}",
+                "context_minutes": "{{form.context_minutes}}",
+                "td_segmentation_chart__zoom__visible_start_time": "{{form.start_time}}",
+                "td_segmentation_chart__zoom__visible_end_time": "{{form.end_time}}",
+                "td_segmentation_chart__zoom__loaded_start_time": "{{form.start_time}}",
+                "td_segmentation_chart__zoom__loaded_end_time": "{{form.end_time}}",
+                "td_segmentation_chart__zoom__loaded_resolution": "__AUTO__",
+                "td_segmentation_chart_scatter__zoom__visible_start_time": "{{form.start_time}}",
+                "td_segmentation_chart_scatter__zoom__visible_end_time": "{{form.end_time}}",
+                "td_segmentation_chart_scatter__zoom__loaded_start_time": "{{form.start_time}}",
+                "td_segmentation_chart_scatter__zoom__loaded_end_time": "{{form.end_time}}",
+                "td_segmentation_chart_scatter__zoom__loaded_resolution": "__AUTO__"
+              }
+            }
+          ],
+          "data_window_changed": [
+            {
+              "type": "set_form_values",
+              "updates": {
+                "data_window": "{{form.data_window}}",
+                "context_minutes": "{{form.context_minutes}}"
+              }
+            },
+            {
+              "type": "compute_metric",
+              "metricKey": "merged_detection_relative_time_bounds_v1",
+              "params": {
+                "well_name": "{{form.well_name}}",
+                "time_range": "{{form.data_window}}"
+              },
+              "resultKey": "time_bounds"
+            },
+            {
+              "type": "set_form_values",
+              "updates": {
+                "start_time": "{{context.time_bounds.first.start_time}}",
+                "end_time": "{{context.time_bounds.first.end_time}}"
+              }
+            }
+          ],
+          "manual_time_bounds_changed": [
+            {
+              "type": "set_form_values",
+              "updates": {
+                "start_time": "{{form.start_time}}",
+                "end_time": "{{form.end_time}}",
+                "data_window": "custom",
+                "context_minutes": "{{form.context_minutes}}"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": "chart_controls",
+        "title": "Chart Controls",
+        "description": "Controls for chart rendering and concentration source.",
+        "chrome": {
+          "disableCard": false,
+          "showActions": false,
+          "hideTitle": true,
+          "padding": 8
+        },
+        "renderConfig": {
+          "library": "Custom",
+          "options": {
+            "type": "form",
+            "config": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "chart_mode": {
+                    "type": "string",
+                    "default": "line",
+                    "metadata": {
+                      "ui": {
+                        "label": "Mode",
+                        "component": "select",
+                        "options": [
+                          {
+                            "label": "Line",
+                            "value": "line"
+                          },
+                          {
+                            "label": "Markers",
+                            "value": "scatter"
+                          }
+                        ],
+                        "onChangeEventId": "chart_mode_changed",
+                        "labelPlacement": "outside-left",
+                        "size": "sm"
+                      }
+                    }
+                  },
+                  "concentration_feature": {
+                    "type": "string",
+                    "default": "auger",
+                    "metadata": {
+                      "ui": {
+                        "label": "Concentration",
+                        "component": "select",
+                        "options": [
+                          {
+                            "label": "Denso",
+                            "value": "denso"
+                          },
+                          {
+                            "label": "Inline",
+                            "value": "inline"
+                          },
+                          {
+                            "label": "Target",
+                            "value": "target"
+                          },
+                          {
+                            "label": "Auger",
+                            "value": "auger"
+                          }
+                        ],
+                        "onChangeEventId": "concentration_feature_changed",
+                        "labelPlacement": "outside-left",
+                        "size": "sm"
+                      }
+                    }
+                  }
+                },
+                "required": [
+                  "chart_mode",
+                  "concentration_feature"
+                ],
+                "additionalProperties": false
+              },
+              "formData": {
+                "chart_mode": "{{state.chart_mode}}",
+                "concentration_feature": "{{state.concentration_feature}}"
+              },
+              "layout": {
+                "cols": 12,
+                "gap": 10,
+                "rows": [
+                  {
+                    "items": [
+                      {
+                        "type": "field",
+                        "key": "chart_mode",
+                        "colSpan": 2
+                      },
+                      {
+                        "type": "field",
+                        "key": "concentration_feature",
+                        "colSpan": 2
+                      }
+                    ]
+                  }
+                ]
+              },
+              "actions": []
+            },
+            "ui": {
+              "fieldRadius": "sm",
+              "fieldVariant": "bordered",
+              "fieldSize": "sm"
+            }
+          }
+        },
+        "events": {
+          "chart_mode_changed": [
+            {
+              "type": "set_state",
+              "updates": {
+                "chart_mode": "{{form.chart_mode}}"
+              }
+            }
+          ],
+          "concentration_feature_changed": [
+            {
+              "type": "set_state",
+              "updates": {
+                "concentration_feature": "{{form.concentration_feature}}"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": "td_segmentation_chart",
+        "title": "Stage Segmentation \u2014 TD (top) vs Ground Truth (bottom)",
+        "description": "Merged stage segmentation windows over whole-well telemetry.",
+        "isDataLarge": true,
+        "chrome": {
+          "showActions": false,
+          "padding": {
+            "top": 8,
+            "right": 8,
+            "bottom": 8,
+            "left": 8
+          },
+          "disableCard": false
+        },
+        "dataConfig": {
+          "chart_data": {
+            "source": "metric",
+            "metricKey": "merged_stage_segmentation_timeseries_zoom_v1",
+            "fieldName": "ts,rate_slurry,press_mainline,selected_concentration,records_in_bucket,context_anchor",
+            "bindings": {
+              "query": {
+                "well_name": "well_name",
+                "start_time": "td_segmentation_chart__zoom__loaded_start_time",
+                "end_time": "td_segmentation_chart__zoom__loaded_end_time",
+                "concentration_feature": "concentration_feature",
+                "data_window": "data_window",
+                "context_minutes": "context_minutes",
+                "resolution_mode": "td_segmentation_chart__zoom__loaded_resolution"
+              },
+              "required": [
+                "well_name",
+                "start_time",
+                "end_time",
+                "concentration_feature",
+                "data_window",
+                "context_minutes",
+                "resolution_mode"
+              ]
+            }
+          },
+          "td_windows": {
+            "source": "metric",
+            "metricKey": "merged_td_stage_segmentation_windows_v1",
+            "fieldName": "window_label,start_ts,end_ts,color,sample_count",
+            "bindings": {
+              "query": {
+                "well_name": "well_name",
+                "start_time": "start_time",
+                "end_time": "end_time"
+              },
+              "required": [
+                "well_name",
+                "start_time",
+                "end_time"
+              ]
+            }
+          },
+          "gt_windows": {
+            "source": "metric",
+            "metricKey": "merged_stage_ground_truth_windows_v1",
+            "fieldName": "window_label,start_ts,end_ts,color,sample_count",
+            "bindings": {
+              "query": {
+                "well_name": "well_name",
+                "start_time": "start_time",
+                "end_time": "end_time"
+              },
+              "required": [
+                "well_name",
+                "start_time",
+                "end_time"
+              ]
+            }
+          }
+        },
+        "renderConfig": {
+          "library": "Custom",
+          "options": {
+            "type": "enhanced-echart",
+            "config": {
+              "chartId": "td_segmentation_chart",
+              "axisRangeControls": {
+                "axes": [
+                  {
+                    "yAxisId": "Y_pressure",
+                    "label": "Pressure",
+                    "persist": false
+                  },
+                  {
+                    "yAxisId": "Y_rate",
+                    "label": "Slurry Rate",
+                    "persist": false
+                  },
+                  {
+                    "yAxisId": "Y_conc",
+                    "label": "Concentration",
+                    "persist": false
+                  }
+                ]
+              },
+              "option": {
+                "grid": [
+                  {
+                    "top": 54,
+                    "left": 90,
+                    "right": 150,
+                    "bottom": "53%",
+                    "containLabel": true
+                  },
+                  {
+                    "top": "49%",
+                    "left": 90,
+                    "right": 150,
+                    "bottom": 84,
+                    "containLabel": true
+                  }
+                ],
+                "xAxis": [
+                  {
+                    "id": "X_td",
+                    "type": "time",
+                    "nameGap": 44,
+                    "nameLocation": "middle",
+                    "axisLabel": {
+                      "rotate": 30,
+                      "hideOverlap": true,
+                      "color": "rgba(148, 163, 184, 0.9)",
+                      "fontSize": 14,
+                      "formatter": "{HH}:{mm}",
+                      "show": false
+                    },
+                    "splitLine": {
+                      "show": false
+                    },
+                    "axisLine": {
+                      "lineStyle": {
+                        "color": "rgba(148, 163, 184, 0.45)"
+                      }
+                    },
+                    "gridIndex": 0
+                  },
+                  {
+                    "id": "X_gt",
+                    "name": "Time",
+                    "type": "time",
+                    "nameGap": 44,
+                    "nameLocation": "middle",
+                    "axisLabel": {
+                      "rotate": 30,
+                      "hideOverlap": true,
+                      "color": "rgba(148, 163, 184, 0.9)",
+                      "fontSize": 14,
+                      "formatter": "{HH}:{mm}",
+                      "show": true
+                    },
+                    "splitLine": {
+                      "show": false
+                    },
+                    "axisLine": {
+                      "lineStyle": {
+                        "color": "rgba(148, 163, 184, 0.45)"
+                      }
+                    },
+                    "gridIndex": 1
+                  }
+                ],
+                "yAxis": [
+                  {
+                    "id": "Y_pressure",
+                    "name": "Pressure (psi)",
+                    "type": "value",
+                    "position": "left",
+                    "nameLocation": "middle",
+                    "nameGap": 58,
+                    "axisLine": {
+                      "show": true,
+                      "lineStyle": {
+                        "color": "#F33F75",
+                        "width": 2
+                      }
+                    },
+                    "axisLabel": {
+                      "color": "#F33F75",
+                      "fontSize": 14
+                    },
+                    "splitLine": {
+                      "show": true,
+                      "lineStyle": {
+                        "color": "rgba(148, 163, 184, 0.14)",
+                        "type": "dashed"
+                      }
+                    },
+                    "gridIndex": 0
+                  },
+                  {
+                    "id": "Y_rate",
+                    "name": "Rate (bpm)",
+                    "type": "value",
+                    "position": "right",
+                    "nameLocation": "middle",
+                    "nameGap": 52,
+                    "axisLine": {
+                      "show": true,
+                      "lineStyle": {
+                        "color": "#4B4ED6",
+                        "width": 2
+                      }
+                    },
+                    "axisLabel": {
+                      "color": "#4B4ED6",
+                      "fontSize": 14
+                    },
+                    "splitLine": {
+                      "show": false
+                    },
+                    "gridIndex": 0
+                  },
+                  {
+                    "id": "Y_conc",
+                    "name": "Concentration (ppa)",
+                    "type": "value",
+                    "position": "right",
+                    "offset": 72,
+                    "nameLocation": "middle",
+                    "nameGap": 62,
+                    "axisLine": {
+                      "show": true,
+                      "lineStyle": {
+                        "color": "#E6982E",
+                        "width": 2
+                      }
+                    },
+                    "axisLabel": {
+                      "color": "#E6982E",
+                      "fontSize": 14
+                    },
+                    "splitLine": {
+                      "show": false
+                    },
+                    "gridIndex": 0
+                  },
+                  {
+                    "type": "value",
+                    "id": "Y_context_extent",
+                    "show": false,
+                    "min": 0,
+                    "max": 1,
+                    "splitLine": {
+                      "show": false
+                    },
+                    "axisLabel": {
+                      "fontSize": 14
+                    },
+                    "gridIndex": 0
+                  },
+                  {
+                    "id": "Y_pressure_gt",
+                    "name": "Pressure (psi)",
+                    "type": "value",
+                    "position": "left",
+                    "nameLocation": "middle",
+                    "nameGap": 58,
+                    "axisLine": {
+                      "show": true,
+                      "lineStyle": {
+                        "color": "#F33F75",
+                        "width": 2
+                      }
+                    },
+                    "axisLabel": {
+                      "color": "#F33F75",
+                      "fontSize": 14
+                    },
+                    "splitLine": {
+                      "show": true,
+                      "lineStyle": {
+                        "color": "rgba(148, 163, 184, 0.14)",
+                        "type": "dashed"
+                      }
+                    },
+                    "gridIndex": 1
+                  },
+                  {
+                    "id": "Y_rate_gt",
+                    "name": "Rate (bpm)",
+                    "type": "value",
+                    "position": "right",
+                    "nameLocation": "middle",
+                    "nameGap": 52,
+                    "axisLine": {
+                      "show": true,
+                      "lineStyle": {
+                        "color": "#4B4ED6",
+                        "width": 2
+                      }
+                    },
+                    "axisLabel": {
+                      "color": "#4B4ED6",
+                      "fontSize": 14
+                    },
+                    "splitLine": {
+                      "show": false
+                    },
+                    "gridIndex": 1
+                  },
+                  {
+                    "id": "Y_conc_gt",
+                    "name": "Concentration (ppa)",
+                    "type": "value",
+                    "position": "right",
+                    "offset": 72,
+                    "nameLocation": "middle",
+                    "nameGap": 62,
+                    "axisLine": {
+                      "show": true,
+                      "lineStyle": {
+                        "color": "#E6982E",
+                        "width": 2
+                      }
+                    },
+                    "axisLabel": {
+                      "color": "#E6982E",
+                      "fontSize": 14
+                    },
+                    "splitLine": {
+                      "show": false
+                    },
+                    "gridIndex": 1
+                  },
+                  {
+                    "type": "value",
+                    "id": "Y_context_extent_gt",
+                    "show": false,
+                    "min": 0,
+                    "max": 1,
+                    "splitLine": {
+                      "show": false
+                    },
+                    "axisLabel": {
+                      "fontSize": 14
+                    },
+                    "gridIndex": 1
+                  }
+                ],
+                "tooltip": {
+                  "trigger": "axis",
+                  "axisPointer": {
+                    "type": "cross",
+                    "link": [
+                      {
+                        "xAxisIndex": "all"
+                      }
+                    ]
+                  },
+                  "backgroundColor": "rgba(15, 23, 42, 0.92)",
+                  "borderColor": "rgba(148, 163, 184, 0.18)",
+                  "textStyle": {
+                    "color": "#E5E7EB",
+                    "fontSize": 11
+                  }
+                },
+                "dataZoom": [
+                  {
+                    "type": "inside",
+                    "xAxisIndex": [
+                      0,
+                      1
+                    ],
+                    "filterMode": "none"
+                  },
+                  {
+                    "type": "slider",
+                    "xAxisIndex": [
+                      0,
+                      1
+                    ],
+                    "bottom": 18,
+                    "height": 18,
+                    "filterMode": "none",
+                    "showDetail": true,
+                    "brushSelect": false,
+                    "borderColor": "rgba(148, 163, 184, 0.24)",
+                    "backgroundColor": "rgba(148, 163, 184, 0.08)",
+                    "fillerColor": "rgba(20, 184, 166, 0.22)"
+                  }
+                ],
+                "dataset": [
+                  {
+                    "source": "data:dataset",
+                    "dimensions": [
+                      "chart_data.ts",
+                      "chart_data.press_mainline",
+                      "chart_data.rate_slurry",
+                      "chart_data.selected_concentration",
+                      "chart_data.records_in_bucket",
+                      "chart_data.context_anchor"
+                    ]
+                  }
+                ],
+                "series": [
+                  {
+                    "name": "Pressure (psi)",
+                    "type": "line",
+                    "large": true,
+                    "progressive": 5000,
+                    "progressiveThreshold": 10000,
+                    "encode": {
+                      "x": "chart_data.ts",
+                      "y": "chart_data.press_mainline"
+                    },
+                    "yAxisId": "Y_pressure",
+                    "xAxisId": "X_td",
+                    "color": "#F33F75",
+                    "datasetIndex": 0,
+                    "smooth": false,
+                    "showSymbol": false,
+                    "sampling": "lttb",
+                    "lineStyle": {
+                      "width": 1.8
+                    }
+                  },
+                  {
+                    "name": "Rate (bpm)",
+                    "type": "line",
+                    "large": true,
+                    "progressive": 5000,
+                    "progressiveThreshold": 10000,
+                    "encode": {
+                      "x": "chart_data.ts",
+                      "y": "chart_data.rate_slurry"
+                    },
+                    "yAxisId": "Y_rate",
+                    "xAxisId": "X_td",
+                    "color": "#4B4ED6",
+                    "datasetIndex": 0,
+                    "smooth": false,
+                    "showSymbol": false,
+                    "sampling": "lttb",
+                    "lineStyle": {
+                      "width": 1.8
+                    }
+                  },
+                  {
+                    "name": "Concentration (ppa)",
+                    "type": "line",
+                    "large": true,
+                    "progressive": 5000,
+                    "progressiveThreshold": 10000,
+                    "encode": {
+                      "x": "chart_data.ts",
+                      "y": "chart_data.selected_concentration"
+                    },
+                    "yAxisId": "Y_conc",
+                    "xAxisId": "X_td",
+                    "color": "#E6982E",
+                    "datasetIndex": 0,
+                    "smooth": false,
+                    "showSymbol": false,
+                    "sampling": "lttb",
+                    "lineStyle": {
+                      "width": 1.8
+                    }
+                  },
+                  {
+                    "name": "TD Windows",
+                    "type": "line",
+                    "data": [],
+                    "xAxisId": "X_td",
+                    "yAxisId": "Y_pressure",
+                    "symbol": "none",
+                    "lineStyle": {
+                      "opacity": 0
+                    },
+                    "markArea": {
+                      "silent": true,
+                      "data": "function:windowMarkAreaV2(data=data:td_windows, labelField=window_label, startField=start_ts, endField=end_ts, colorField=color, minLabelDurationSec=300, opacity=0.16)",
+                      "label": {
+                        "show": true,
+                        "position": "insideTop",
+                        "color": "rgba(15, 23, 42, 0.72)",
+                        "fontSize": 11,
+                        "fontWeight": 600,
+                        "overflow": "truncate"
+                      }
+                    },
+                    "color": "#D9902F",
+                    "itemStyle": {
+                      "color": "#D9902F"
+                    }
+                  },
+                  {
+                    "name": "__context_extent__",
+                    "type": "scatter",
+                    "encode": {
+                      "x": "chart_data.ts",
+                      "y": "chart_data.context_anchor"
+                    },
+                    "xAxisId": "X_td",
+                    "yAxisId": "Y_context_extent",
+                    "datasetIndex": 0,
+                    "symbolSize": 0,
+                    "silent": true,
+                    "tooltip": {
+                      "show": false
+                    },
+                    "itemStyle": {
+                      "opacity": 0
+                    },
+                    "emphasis": {
+                      "disabled": true
+                    }
+                  },
+                  {
+                    "name": "Pressure (psi)",
+                    "type": "line",
+                    "large": true,
+                    "progressive": 5000,
+                    "progressiveThreshold": 10000,
+                    "encode": {
+                      "x": "chart_data.ts",
+                      "y": "chart_data.press_mainline"
+                    },
+                    "yAxisId": "Y_pressure_gt",
+                    "xAxisId": "X_gt",
+                    "color": "#F33F75",
+                    "datasetIndex": 0,
+                    "smooth": false,
+                    "showSymbol": false,
+                    "sampling": "lttb",
+                    "lineStyle": {
+                      "width": 1.8
+                    }
+                  },
+                  {
+                    "name": "Rate (bpm)",
+                    "type": "line",
+                    "large": true,
+                    "progressive": 5000,
+                    "progressiveThreshold": 10000,
+                    "encode": {
+                      "x": "chart_data.ts",
+                      "y": "chart_data.rate_slurry"
+                    },
+                    "yAxisId": "Y_rate_gt",
+                    "xAxisId": "X_gt",
+                    "color": "#4B4ED6",
+                    "datasetIndex": 0,
+                    "smooth": false,
+                    "showSymbol": false,
+                    "sampling": "lttb",
+                    "lineStyle": {
+                      "width": 1.8
+                    }
+                  },
+                  {
+                    "name": "Concentration (ppa)",
+                    "type": "line",
+                    "large": true,
+                    "progressive": 5000,
+                    "progressiveThreshold": 10000,
+                    "encode": {
+                      "x": "chart_data.ts",
+                      "y": "chart_data.selected_concentration"
+                    },
+                    "yAxisId": "Y_conc_gt",
+                    "xAxisId": "X_gt",
+                    "color": "#E6982E",
+                    "datasetIndex": 0,
+                    "smooth": false,
+                    "showSymbol": false,
+                    "sampling": "lttb",
+                    "lineStyle": {
+                      "width": 1.8
+                    }
+                  },
+                  {
+                    "name": "GT Windows",
+                    "type": "line",
+                    "data": [],
+                    "xAxisId": "X_gt",
+                    "yAxisId": "Y_pressure_gt",
+                    "symbol": "none",
+                    "lineStyle": {
+                      "opacity": 0
+                    },
+                    "markArea": {
+                      "silent": true,
+                      "data": "function:windowMarkAreaV2(data=data:gt_windows, labelField=window_label, startField=start_ts, endField=end_ts, colorField=color, minLabelDurationSec=300, opacity=0.16)",
+                      "label": {
+                        "show": true,
+                        "position": "insideTop",
+                        "color": "rgba(15, 23, 42, 0.72)",
+                        "fontSize": 11,
+                        "fontWeight": 600,
+                        "overflow": "truncate"
+                      }
+                    },
+                    "color": "#228B22",
+                    "itemStyle": {
+                      "color": "#228B22"
+                    }
+                  },
+                  {
+                    "name": "__context_extent__",
+                    "type": "scatter",
+                    "encode": {
+                      "x": "chart_data.ts",
+                      "y": "chart_data.context_anchor"
+                    },
+                    "xAxisId": "X_gt",
+                    "yAxisId": "Y_context_extent_gt",
+                    "datasetIndex": 0,
+                    "symbolSize": 0,
+                    "silent": true,
+                    "tooltip": {
+                      "show": false
+                    },
+                    "itemStyle": {
+                      "opacity": 0
+                    },
+                    "emphasis": {
+                      "disabled": true
+                    }
+                  }
+                ],
+                "legend": {
+                  "top": 8,
+                  "type": "scroll",
+                  "textStyle": {
+                    "color": "rgba(148, 163, 184, 0.95)",
+                    "fontSize": 14
+                  },
+                  "data": [
+                    {
+                      "name": "Pressure (psi)",
+                      "itemStyle": {
+                        "opacity": 0
+                      }
+                    },
+                    {
+                      "name": "Rate (bpm)",
+                      "itemStyle": {
+                        "opacity": 0
+                      }
+                    },
+                    {
+                      "name": "Concentration (ppa)",
+                      "itemStyle": {
+                        "opacity": 0
+                      }
+                    },
+                    "TD Windows",
+                    "GT Windows"
+                  ]
+                }
+              }
+            }
+          },
+          "runtime": {
+            "interactions": {
+              "refetchOnZoom": {
+                "enabled": true,
+                "eventId": "stage_detection_zoom_range_changed",
+                "baseStart": "{{state.start_time}}",
+                "baseEnd": "{{state.end_time}}",
+                "strategy": {
+                  "thresholds": [
+                    {
+                      "maxRangeSeconds": 21600,
+                      "resolution": "raw"
+                    },
+                    {
+                      "resolution": "rollup_60s"
+                    }
+                  ]
+                },
+                "boxZoom": {
+                  "enabled": true,
+                  "defaultActive": true,
+                  "history": true,
+                  "reset": true
+                }
+              }
+            }
+          }
+        },
+        "events": {
+          "stage_detection_zoom_range_changed": [
+            {
+              "type": "set_view_state",
+              "when": {
+                "ref": "event.is_restore",
+                "op": "eq",
+                "value": false
+              },
+              "updates": {
+                "td_segmentation_chart__zoom__visible_start_time": "{{event.zoom_start_time}}",
+                "td_segmentation_chart__zoom__visible_end_time": "{{event.zoom_end_time}}",
+                "td_segmentation_chart__zoom__loaded_start_time": "{{event.zoom_load_start_time}}",
+                "td_segmentation_chart__zoom__loaded_end_time": "{{event.zoom_load_end_time}}",
+                "td_segmentation_chart__zoom__loaded_resolution": "{{event.zoom_resolution}}",
+                "td_segmentation_chart__zoom__history": "{{event.zoom_history}}",
+                "td_segmentation_chart__zoom__history_index": "{{event.zoom_history_index}}"
+              }
+            },
+            {
+              "type": "set_view_state",
+              "when": {
+                "ref": "event.is_restore",
+                "op": "eq",
+                "value": true
+              },
+              "updates": {
+                "td_segmentation_chart__zoom__visible_start_time": "{{state.start_time}}",
+                "td_segmentation_chart__zoom__visible_end_time": "{{state.end_time}}",
+                "td_segmentation_chart__zoom__loaded_start_time": "{{state.start_time}}",
+                "td_segmentation_chart__zoom__loaded_end_time": "{{state.end_time}}",
+                "td_segmentation_chart__zoom__loaded_resolution": "__AUTO__",
+                "td_segmentation_chart__zoom__history": "{{event.zoom_history}}",
+                "td_segmentation_chart__zoom__history_index": "{{event.zoom_history_index}}"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": "td_segmentation_chart_scatter",
+        "title": "Stage Segmentation \u2014 TD (top) vs Ground Truth (bottom)",
+        "description": "Merged stage segmentation windows over whole-well telemetry.",
+        "isDataLarge": true,
+        "chrome": {
+          "showActions": false,
+          "padding": {
+            "top": 8,
+            "right": 8,
+            "bottom": 8,
+            "left": 8
+          },
+          "disableCard": false
+        },
+        "dataConfig": {
+          "chart_data": {
+            "source": "metric",
+            "metricKey": "merged_stage_segmentation_timeseries_zoom_v1",
+            "fieldName": "ts,rate_slurry,press_mainline,selected_concentration,records_in_bucket,context_anchor",
+            "bindings": {
+              "query": {
+                "well_name": "well_name",
+                "start_time": "td_segmentation_chart_scatter__zoom__loaded_start_time",
+                "end_time": "td_segmentation_chart_scatter__zoom__loaded_end_time",
+                "concentration_feature": "concentration_feature",
+                "data_window": "data_window",
+                "context_minutes": "context_minutes",
+                "resolution_mode": "td_segmentation_chart_scatter__zoom__loaded_resolution"
+              },
+              "required": [
+                "well_name",
+                "start_time",
+                "end_time",
+                "concentration_feature",
+                "data_window",
+                "context_minutes",
+                "resolution_mode"
+              ]
+            }
+          },
+          "td_windows": {
+            "source": "metric",
+            "metricKey": "merged_td_stage_segmentation_windows_v1",
+            "fieldName": "window_label,start_ts,end_ts,color,sample_count",
+            "bindings": {
+              "query": {
+                "well_name": "well_name",
+                "start_time": "start_time",
+                "end_time": "end_time"
+              },
+              "required": [
+                "well_name",
+                "start_time",
+                "end_time"
+              ]
+            }
+          },
+          "gt_windows": {
+            "source": "metric",
+            "metricKey": "merged_stage_ground_truth_windows_v1",
+            "fieldName": "window_label,start_ts,end_ts,color,sample_count",
+            "bindings": {
+              "query": {
+                "well_name": "well_name",
+                "start_time": "start_time",
+                "end_time": "end_time"
+              },
+              "required": [
+                "well_name",
+                "start_time",
+                "end_time"
+              ]
+            }
+          }
+        },
+        "renderConfig": {
+          "library": "Custom",
+          "options": {
+            "type": "enhanced-echart",
+            "config": {
+              "chartId": "td_segmentation_chart_scatter",
+              "axisRangeControls": {
+                "axes": [
+                  {
+                    "yAxisId": "Y_pressure",
+                    "label": "Pressure",
+                    "persist": false
+                  },
+                  {
+                    "yAxisId": "Y_rate",
+                    "label": "Slurry Rate",
+                    "persist": false
+                  },
+                  {
+                    "yAxisId": "Y_conc",
+                    "label": "Concentration",
+                    "persist": false
+                  }
+                ]
+              },
+              "option": {
+                "grid": [
+                  {
+                    "top": 54,
+                    "left": 90,
+                    "right": 150,
+                    "bottom": "53%",
+                    "containLabel": true
+                  },
+                  {
+                    "top": "49%",
+                    "left": 90,
+                    "right": 150,
+                    "bottom": 84,
+                    "containLabel": true
+                  }
+                ],
+                "xAxis": [
+                  {
+                    "id": "X_td",
+                    "type": "time",
+                    "nameGap": 44,
+                    "nameLocation": "middle",
+                    "axisLabel": {
+                      "rotate": 30,
+                      "hideOverlap": true,
+                      "color": "rgba(148, 163, 184, 0.9)",
+                      "fontSize": 14,
+                      "formatter": "{HH}:{mm}",
+                      "show": false
+                    },
+                    "splitLine": {
+                      "show": false
+                    },
+                    "axisLine": {
+                      "lineStyle": {
+                        "color": "rgba(148, 163, 184, 0.45)"
+                      }
+                    },
+                    "gridIndex": 0
+                  },
+                  {
+                    "id": "X_gt",
+                    "name": "Time",
+                    "type": "time",
+                    "nameGap": 44,
+                    "nameLocation": "middle",
+                    "axisLabel": {
+                      "rotate": 30,
+                      "hideOverlap": true,
+                      "color": "rgba(148, 163, 184, 0.9)",
+                      "fontSize": 14,
+                      "formatter": "{HH}:{mm}",
+                      "show": true
+                    },
+                    "splitLine": {
+                      "show": false
+                    },
+                    "axisLine": {
+                      "lineStyle": {
+                        "color": "rgba(148, 163, 184, 0.45)"
+                      }
+                    },
+                    "gridIndex": 1
+                  }
+                ],
+                "yAxis": [
+                  {
+                    "id": "Y_pressure",
+                    "name": "Pressure (psi)",
+                    "type": "value",
+                    "position": "left",
+                    "nameLocation": "middle",
+                    "nameGap": 58,
+                    "axisLine": {
+                      "show": true,
+                      "lineStyle": {
+                        "color": "#F33F75",
+                        "width": 2
+                      }
+                    },
+                    "axisLabel": {
+                      "color": "#F33F75",
+                      "fontSize": 14
+                    },
+                    "splitLine": {
+                      "show": true,
+                      "lineStyle": {
+                        "color": "rgba(148, 163, 184, 0.14)",
+                        "type": "dashed"
+                      }
+                    },
+                    "gridIndex": 0
+                  },
+                  {
+                    "id": "Y_rate",
+                    "name": "Rate (bpm)",
+                    "type": "value",
+                    "position": "right",
+                    "nameLocation": "middle",
+                    "nameGap": 52,
+                    "axisLine": {
+                      "show": true,
+                      "lineStyle": {
+                        "color": "#4B4ED6",
+                        "width": 2
+                      }
+                    },
+                    "axisLabel": {
+                      "color": "#4B4ED6",
+                      "fontSize": 14
+                    },
+                    "splitLine": {
+                      "show": false
+                    },
+                    "gridIndex": 0
+                  },
+                  {
+                    "id": "Y_conc",
+                    "name": "Concentration (ppa)",
+                    "type": "value",
+                    "position": "right",
+                    "offset": 72,
+                    "nameLocation": "middle",
+                    "nameGap": 62,
+                    "axisLine": {
+                      "show": true,
+                      "lineStyle": {
+                        "color": "#E6982E",
+                        "width": 2
+                      }
+                    },
+                    "axisLabel": {
+                      "color": "#E6982E",
+                      "fontSize": 14
+                    },
+                    "splitLine": {
+                      "show": false
+                    },
+                    "gridIndex": 0
+                  },
+                  {
+                    "type": "value",
+                    "id": "Y_context_extent",
+                    "show": false,
+                    "min": 0,
+                    "max": 1,
+                    "splitLine": {
+                      "show": false
+                    },
+                    "axisLabel": {
+                      "fontSize": 14
+                    },
+                    "gridIndex": 0
+                  },
+                  {
+                    "id": "Y_pressure_gt",
+                    "name": "Pressure (psi)",
+                    "type": "value",
+                    "position": "left",
+                    "nameLocation": "middle",
+                    "nameGap": 58,
+                    "axisLine": {
+                      "show": true,
+                      "lineStyle": {
+                        "color": "#F33F75",
+                        "width": 2
+                      }
+                    },
+                    "axisLabel": {
+                      "color": "#F33F75",
+                      "fontSize": 14
+                    },
+                    "splitLine": {
+                      "show": true,
+                      "lineStyle": {
+                        "color": "rgba(148, 163, 184, 0.14)",
+                        "type": "dashed"
+                      }
+                    },
+                    "gridIndex": 1
+                  },
+                  {
+                    "id": "Y_rate_gt",
+                    "name": "Rate (bpm)",
+                    "type": "value",
+                    "position": "right",
+                    "nameLocation": "middle",
+                    "nameGap": 52,
+                    "axisLine": {
+                      "show": true,
+                      "lineStyle": {
+                        "color": "#4B4ED6",
+                        "width": 2
+                      }
+                    },
+                    "axisLabel": {
+                      "color": "#4B4ED6",
+                      "fontSize": 14
+                    },
+                    "splitLine": {
+                      "show": false
+                    },
+                    "gridIndex": 1
+                  },
+                  {
+                    "id": "Y_conc_gt",
+                    "name": "Concentration (ppa)",
+                    "type": "value",
+                    "position": "right",
+                    "offset": 72,
+                    "nameLocation": "middle",
+                    "nameGap": 62,
+                    "axisLine": {
+                      "show": true,
+                      "lineStyle": {
+                        "color": "#E6982E",
+                        "width": 2
+                      }
+                    },
+                    "axisLabel": {
+                      "color": "#E6982E",
+                      "fontSize": 14
+                    },
+                    "splitLine": {
+                      "show": false
+                    },
+                    "gridIndex": 1
+                  },
+                  {
+                    "type": "value",
+                    "id": "Y_context_extent_gt",
+                    "show": false,
+                    "min": 0,
+                    "max": 1,
+                    "splitLine": {
+                      "show": false
+                    },
+                    "axisLabel": {
+                      "fontSize": 14
+                    },
+                    "gridIndex": 1
+                  }
+                ],
+                "tooltip": {
+                  "trigger": "axis",
+                  "axisPointer": {
+                    "type": "cross",
+                    "link": [
+                      {
+                        "xAxisIndex": "all"
+                      }
+                    ]
+                  },
+                  "backgroundColor": "rgba(15, 23, 42, 0.92)",
+                  "borderColor": "rgba(148, 163, 184, 0.18)",
+                  "textStyle": {
+                    "color": "#E5E7EB",
+                    "fontSize": 11
+                  }
+                },
+                "dataZoom": [
+                  {
+                    "type": "inside",
+                    "xAxisIndex": [
+                      0,
+                      1
+                    ],
+                    "filterMode": "none"
+                  },
+                  {
+                    "type": "slider",
+                    "xAxisIndex": [
+                      0,
+                      1
+                    ],
+                    "bottom": 18,
+                    "height": 18,
+                    "filterMode": "none",
+                    "showDetail": true,
+                    "brushSelect": false,
+                    "borderColor": "rgba(148, 163, 184, 0.24)",
+                    "backgroundColor": "rgba(148, 163, 184, 0.08)",
+                    "fillerColor": "rgba(20, 184, 166, 0.22)"
+                  }
+                ],
+                "dataset": [
+                  {
+                    "source": "data:dataset",
+                    "dimensions": [
+                      "chart_data.ts",
+                      "chart_data.press_mainline",
+                      "chart_data.rate_slurry",
+                      "chart_data.selected_concentration",
+                      "chart_data.records_in_bucket",
+                      "chart_data.context_anchor"
+                    ]
+                  }
+                ],
+                "series": [
+                  {
+                    "name": "Pressure (psi)",
+                    "type": "scatter",
+                    "large": true,
+                    "progressive": 5000,
+                    "progressiveThreshold": 10000,
+                    "encode": {
+                      "x": "chart_data.ts",
+                      "y": "chart_data.press_mainline"
+                    },
+                    "yAxisId": "Y_pressure",
+                    "xAxisId": "X_td",
+                    "color": "#F33F75",
+                    "datasetIndex": 0,
+                    "symbolSize": 3,
+                    "largeThreshold": 2000,
+                    "itemStyle": {
+                      "opacity": 0.72
+                    }
+                  },
+                  {
+                    "name": "Rate (bpm)",
+                    "type": "scatter",
+                    "large": true,
+                    "progressive": 5000,
+                    "progressiveThreshold": 10000,
+                    "encode": {
+                      "x": "chart_data.ts",
+                      "y": "chart_data.rate_slurry"
+                    },
+                    "yAxisId": "Y_rate",
+                    "xAxisId": "X_td",
+                    "color": "#4B4ED6",
+                    "datasetIndex": 0,
+                    "symbolSize": 3,
+                    "largeThreshold": 2000,
+                    "itemStyle": {
+                      "opacity": 0.72
+                    }
+                  },
+                  {
+                    "name": "Concentration (ppa)",
+                    "type": "scatter",
+                    "large": true,
+                    "progressive": 5000,
+                    "progressiveThreshold": 10000,
+                    "encode": {
+                      "x": "chart_data.ts",
+                      "y": "chart_data.selected_concentration"
+                    },
+                    "yAxisId": "Y_conc",
+                    "xAxisId": "X_td",
+                    "color": "#E6982E",
+                    "datasetIndex": 0,
+                    "symbolSize": 3,
+                    "largeThreshold": 2000,
+                    "itemStyle": {
+                      "opacity": 0.72
+                    }
+                  },
+                  {
+                    "name": "TD Windows",
+                    "type": "line",
+                    "data": [],
+                    "xAxisId": "X_td",
+                    "yAxisId": "Y_pressure",
+                    "symbol": "none",
+                    "lineStyle": {
+                      "opacity": 0
+                    },
+                    "markArea": {
+                      "silent": true,
+                      "data": "function:windowMarkAreaV2(data=data:td_windows, labelField=window_label, startField=start_ts, endField=end_ts, colorField=color, minLabelDurationSec=300, opacity=0.16)",
+                      "label": {
+                        "show": true,
+                        "position": "insideTop",
+                        "color": "rgba(15, 23, 42, 0.72)",
+                        "fontSize": 11,
+                        "fontWeight": 600,
+                        "overflow": "truncate"
+                      }
+                    },
+                    "color": "#D9902F",
+                    "itemStyle": {
+                      "color": "#D9902F"
+                    }
+                  },
+                  {
+                    "name": "__context_extent__",
+                    "type": "scatter",
+                    "encode": {
+                      "x": "chart_data.ts",
+                      "y": "chart_data.context_anchor"
+                    },
+                    "xAxisId": "X_td",
+                    "yAxisId": "Y_context_extent",
+                    "datasetIndex": 0,
+                    "symbolSize": 0,
+                    "silent": true,
+                    "tooltip": {
+                      "show": false
+                    },
+                    "itemStyle": {
+                      "opacity": 0
+                    },
+                    "emphasis": {
+                      "disabled": true
+                    }
+                  },
+                  {
+                    "name": "Pressure (psi)",
+                    "type": "scatter",
+                    "large": true,
+                    "progressive": 5000,
+                    "progressiveThreshold": 10000,
+                    "encode": {
+                      "x": "chart_data.ts",
+                      "y": "chart_data.press_mainline"
+                    },
+                    "yAxisId": "Y_pressure_gt",
+                    "xAxisId": "X_gt",
+                    "color": "#F33F75",
+                    "datasetIndex": 0,
+                    "symbolSize": 3,
+                    "largeThreshold": 2000,
+                    "itemStyle": {
+                      "opacity": 0.72
+                    }
+                  },
+                  {
+                    "name": "Rate (bpm)",
+                    "type": "scatter",
+                    "large": true,
+                    "progressive": 5000,
+                    "progressiveThreshold": 10000,
+                    "encode": {
+                      "x": "chart_data.ts",
+                      "y": "chart_data.rate_slurry"
+                    },
+                    "yAxisId": "Y_rate_gt",
+                    "xAxisId": "X_gt",
+                    "color": "#4B4ED6",
+                    "datasetIndex": 0,
+                    "symbolSize": 3,
+                    "largeThreshold": 2000,
+                    "itemStyle": {
+                      "opacity": 0.72
+                    }
+                  },
+                  {
+                    "name": "Concentration (ppa)",
+                    "type": "scatter",
+                    "large": true,
+                    "progressive": 5000,
+                    "progressiveThreshold": 10000,
+                    "encode": {
+                      "x": "chart_data.ts",
+                      "y": "chart_data.selected_concentration"
+                    },
+                    "yAxisId": "Y_conc_gt",
+                    "xAxisId": "X_gt",
+                    "color": "#E6982E",
+                    "datasetIndex": 0,
+                    "symbolSize": 3,
+                    "largeThreshold": 2000,
+                    "itemStyle": {
+                      "opacity": 0.72
+                    }
+                  },
+                  {
+                    "name": "GT Windows",
+                    "type": "line",
+                    "data": [],
+                    "xAxisId": "X_gt",
+                    "yAxisId": "Y_pressure_gt",
+                    "symbol": "none",
+                    "lineStyle": {
+                      "opacity": 0
+                    },
+                    "markArea": {
+                      "silent": true,
+                      "data": "function:windowMarkAreaV2(data=data:gt_windows, labelField=window_label, startField=start_ts, endField=end_ts, colorField=color, minLabelDurationSec=300, opacity=0.16)",
+                      "label": {
+                        "show": true,
+                        "position": "insideTop",
+                        "color": "rgba(15, 23, 42, 0.72)",
+                        "fontSize": 11,
+                        "fontWeight": 600,
+                        "overflow": "truncate"
+                      }
+                    },
+                    "color": "#228B22",
+                    "itemStyle": {
+                      "color": "#228B22"
+                    }
+                  },
+                  {
+                    "name": "__context_extent__",
+                    "type": "scatter",
+                    "encode": {
+                      "x": "chart_data.ts",
+                      "y": "chart_data.context_anchor"
+                    },
+                    "xAxisId": "X_gt",
+                    "yAxisId": "Y_context_extent_gt",
+                    "datasetIndex": 0,
+                    "symbolSize": 0,
+                    "silent": true,
+                    "tooltip": {
+                      "show": false
+                    },
+                    "itemStyle": {
+                      "opacity": 0
+                    },
+                    "emphasis": {
+                      "disabled": true
+                    }
+                  }
+                ],
+                "legend": {
+                  "top": 8,
+                  "type": "scroll",
+                  "textStyle": {
+                    "color": "rgba(148, 163, 184, 0.95)",
+                    "fontSize": 14
+                  },
+                  "data": [
+                    "Pressure (psi)",
+                    "Rate (bpm)",
+                    "Concentration (ppa)",
+                    "TD Windows",
+                    "GT Windows"
+                  ]
+                }
+              }
+            }
+          },
+          "runtime": {
+            "interactions": {
+              "refetchOnZoom": {
+                "enabled": true,
+                "eventId": "stage_detection_zoom_range_changed",
+                "baseStart": "{{state.start_time}}",
+                "baseEnd": "{{state.end_time}}",
+                "strategy": {
+                  "thresholds": [
+                    {
+                      "maxRangeSeconds": 21600,
+                      "resolution": "raw"
+                    },
+                    {
+                      "resolution": "rollup_60s"
+                    }
+                  ]
+                },
+                "boxZoom": {
+                  "enabled": true,
+                  "defaultActive": true,
+                  "history": true,
+                  "reset": true
+                }
+              }
+            }
+          }
+        },
+        "events": {
+          "stage_detection_zoom_range_changed": [
+            {
+              "type": "set_view_state",
+              "when": {
+                "ref": "event.is_restore",
+                "op": "eq",
+                "value": false
+              },
+              "updates": {
+                "td_segmentation_chart_scatter__zoom__visible_start_time": "{{event.zoom_start_time}}",
+                "td_segmentation_chart_scatter__zoom__visible_end_time": "{{event.zoom_end_time}}",
+                "td_segmentation_chart_scatter__zoom__loaded_start_time": "{{event.zoom_load_start_time}}",
+                "td_segmentation_chart_scatter__zoom__loaded_end_time": "{{event.zoom_load_end_time}}",
+                "td_segmentation_chart_scatter__zoom__loaded_resolution": "{{event.zoom_resolution}}",
+                "td_segmentation_chart_scatter__zoom__history": "{{event.zoom_history}}",
+                "td_segmentation_chart_scatter__zoom__history_index": "{{event.zoom_history_index}}"
+              }
+            },
+            {
+              "type": "set_view_state",
+              "when": {
+                "ref": "event.is_restore",
+                "op": "eq",
+                "value": true
+              },
+              "updates": {
+                "td_segmentation_chart_scatter__zoom__visible_start_time": "{{state.start_time}}",
+                "td_segmentation_chart_scatter__zoom__visible_end_time": "{{state.end_time}}",
+                "td_segmentation_chart_scatter__zoom__loaded_start_time": "{{state.start_time}}",
+                "td_segmentation_chart_scatter__zoom__loaded_end_time": "{{state.end_time}}",
+                "td_segmentation_chart_scatter__zoom__loaded_resolution": "__AUTO__",
+                "td_segmentation_chart_scatter__zoom__history": "{{event.zoom_history}}",
+                "td_segmentation_chart_scatter__zoom__history_index": "{{event.zoom_history_index}}"
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "views": [
+      {
+        "id": "main",
+        "title": "Nix Stage Detection Dashboard (Merged)",
+        "presentation": {
+          "type": "page"
+        },
+        "layout": [
+          {
+            "instanceId": "selection_form_main",
+            "widgetId": "selection_form",
+            "gridPos": {
+              "x": 0,
+              "y": 0,
+              "w": 24,
+              "h": 5
+            }
+          },
+          {
+            "instanceId": "chart_controls_main",
+            "widgetId": "chart_controls",
+            "gridPos": {
+              "x": 0,
+              "y": 5,
+              "w": 24,
+              "h": 2
+            }
+          },
+          {
+            "instanceId": "td_segmentation_chart_line_main",
+            "widgetId": "td_segmentation_chart",
+            "gridPos": {
+              "x": 0,
+              "y": 7,
+              "w": 24,
+              "h": 32
+            },
+            "visibleWhen": [
+              {
+                "ref": "state.chart_mode",
+                "op": "eq",
+                "value": "line"
+              }
+            ]
+          },
+          {
+            "instanceId": "td_segmentation_chart_scatter_main",
+            "widgetId": "td_segmentation_chart_scatter",
+            "gridPos": {
+              "x": 0,
+              "y": 7,
+              "w": 24,
+              "h": 32
+            },
+            "visibleWhen": [
+              {
+                "ref": "state.chart_mode",
+                "op": "eq",
+                "value": "scatter"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

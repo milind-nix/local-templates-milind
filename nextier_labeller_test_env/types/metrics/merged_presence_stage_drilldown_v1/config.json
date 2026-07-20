@@ -1,0 +1,49 @@
+{
+  "key": "merged_presence_stage_drilldown_v1",
+  "displayName": "Merged Presence Stage Telemetry",
+  "description": "Raw telemetry for a specific well and TD stage.",
+  "sql": "SELECT * FROM (\nWITH bounds AS (\n  SELECT CAST(stage_start_ts AS timestamp) AS start_ts,\n         CAST(stage_end_ts AS timestamp) AS end_ts\n  FROM featurestore:merged_td_stage_index_v1\n  WHERE name = :well_name AND stage_num_td = CAST(:stage_num AS DOUBLE PRECISION)\n  LIMIT 1\n)\nSELECT\n  CAST(t.name AS TEXT) || ':' || CAST(t.record_ts AS TEXT) AS telemetry_point_id,\n  t.name AS well_name,\n  t.record_ts AS timestamp,\n  CAST(:stage_num AS DOUBLE PRECISION) AS stage_num,\n  t.press_mainline,\n  t.rate_slurry,\n  t.prop_conc_blend_denso AS selected_concentration\nFROM datastore:merged_fleet_stream_customer_full_v2 t\nCROSS JOIN bounds b\nWHERE t.name = :well_name\n  AND t.record_ts >= b.start_ts\n  AND t.record_ts <= b.end_ts\nORDER BY t.record_ts\n) q",
+  "valueSchema": {
+    "type": "object",
+    "properties": {
+      "telemetry_point_id": {
+        "type": "string"
+      },
+      "well_name": {
+        "type": "string"
+      },
+      "timestamp": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "stage_num": {
+        "type": "number"
+      },
+      "press_mainline": {
+        "type": "number"
+      },
+      "rate_slurry": {
+        "type": "number"
+      },
+      "selected_concentration": {
+        "type": "number"
+      }
+    },
+    "required": []
+  },
+  "paramsSchema": {
+    "type": "object",
+    "properties": {
+      "well_name": {
+        "type": "string"
+      },
+      "stage_num": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "well_name",
+      "stage_num"
+    ]
+  }
+}

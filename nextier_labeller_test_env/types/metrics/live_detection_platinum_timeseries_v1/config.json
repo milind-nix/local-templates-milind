@@ -2,7 +2,7 @@
   "key": "live_detection_platinum_timeseries_v1",
   "displayName": "Live Detection Platinum Timeseries",
   "description": "Selected-stage Platinum telemetry and workflow labels for the Nix Substage Detection dashboard.",
-  "sql": "SELECT * FROM (SELECT p.name AS well_name, p.stage_num_td AS stage_num, CAST(p.datetime_fmt AS timestamp) AS ts, CASE WHEN LOWER(p.substage) = 'design' THEN 'slurry' WHEN LOWER(p.substage) = 'na' THEN NULL ELSE p.substage END AS substage_label, p.rate_slurry, p.press_mainline, CASE WHEN :concentration_feature = 'inline' THEN t.prop_conc_inline WHEN :concentration_feature = 'target' THEN t.prop_conc_target WHEN :concentration_feature = 'auger' THEN t.prop_conc_blend_auger ELSE p.prop_conc_blend_denso END AS selected_concentration, p.inferred_pressure, p.inferred_design_rate AS design_rate, p.inferred_design_rate * 0.95 AS design_rate_high, p.inferred_design_rate * 0.90 AS design_rate_rampdown FROM featurestore:live_platinum_labels_v1 p LEFT JOIN datastore:live_fleet_stream_customer_full_v1 t ON t.name = p.name AND t.record_ts = CAST(p.datetime_fmt AS timestamp) WHERE p.name = :well_name AND p.stage_num_td = :stage_num ORDER BY CAST(p.datetime_fmt AS timestamp)) q",
+  "sql": "SELECT * FROM (WITH stage_bounds AS (SELECT MIN(CAST(datetime_fmt AS timestamp)) AS s_start, MAX(CAST(datetime_fmt AS timestamp)) AS s_end FROM featurestore:live_platinum_labels_v1 WHERE name = :well_name AND stage_num_td = :stage_num), bounds AS (SELECT s_start - (:context_minutes || ' minutes')::interval AS c_start, s_end + (:context_minutes || ' minutes')::interval AS c_end FROM stage_bounds), telemetry AS (SELECT t.name AS well_name, CAST(p.stage_num_td AS DOUBLE PRECISION) AS stage_num, t.record_ts AS ts, CASE WHEN p.stage_num_td = :stage_num THEN (CASE WHEN LOWER(p.substage) = 'design' THEN 'slurry' WHEN LOWER(p.substage) = 'na' THEN NULL ELSE p.substage END) ELSE NULL END AS substage_label, t.rate_slurry, t.press_mainline, CASE WHEN :concentration_feature = 'inline' THEN t.prop_conc_inline WHEN :concentration_feature = 'target' THEN t.prop_conc_target WHEN :concentration_feature = 'auger' THEN t.prop_conc_blend_auger ELSE t.prop_conc_blend_denso END AS selected_concentration, CASE WHEN p.stage_num_td = :stage_num THEN p.inferred_pressure ELSE NULL END AS inferred_pressure, CASE WHEN p.stage_num_td = :stage_num THEN p.inferred_design_rate ELSE NULL END AS design_rate, CASE WHEN p.stage_num_td = :stage_num THEN p.inferred_design_rate * 0.95 ELSE NULL END AS design_rate_high, CASE WHEN p.stage_num_td = :stage_num THEN p.inferred_design_rate * 0.90 ELSE NULL END AS design_rate_rampdown, CAST(NULL AS DOUBLE PRECISION) AS context_anchor FROM datastore:live_fleet_stream_customer_full_v1 t CROSS JOIN bounds b LEFT JOIN featurestore:live_platinum_labels_v1 p ON p.name = t.name AND CAST(p.datetime_fmt AS timestamp) = t.record_ts WHERE t.name = :well_name AND t.record_ts BETWEEN b.c_start AND b.c_end), boundary_points AS (SELECT CAST(:well_name AS TEXT) AS well_name, CAST(NULL AS DOUBLE PRECISION) AS stage_num, c_start AS ts, CAST(NULL AS TEXT) AS substage_label, CAST(NULL AS DOUBLE PRECISION) AS rate_slurry, CAST(NULL AS DOUBLE PRECISION) AS press_mainline, CAST(NULL AS DOUBLE PRECISION) AS selected_concentration, CAST(NULL AS DOUBLE PRECISION) AS inferred_pressure, CAST(NULL AS DOUBLE PRECISION) AS design_rate, CAST(NULL AS DOUBLE PRECISION) AS design_rate_high, CAST(NULL AS DOUBLE PRECISION) AS design_rate_rampdown, 0.0 AS context_anchor FROM bounds UNION ALL SELECT CAST(:well_name AS TEXT) AS well_name, CAST(NULL AS DOUBLE PRECISION) AS stage_num, c_end AS ts, CAST(NULL AS TEXT) AS substage_label, CAST(NULL AS DOUBLE PRECISION) AS rate_slurry, CAST(NULL AS DOUBLE PRECISION) AS press_mainline, CAST(NULL AS DOUBLE PRECISION) AS selected_concentration, CAST(NULL AS DOUBLE PRECISION) AS inferred_pressure, CAST(NULL AS DOUBLE PRECISION) AS design_rate, CAST(NULL AS DOUBLE PRECISION) AS design_rate_high, CAST(NULL AS DOUBLE PRECISION) AS design_rate_rampdown, 0.0 AS context_anchor FROM bounds) SELECT * FROM telemetry UNION ALL SELECT * FROM boundary_points ORDER BY ts) q",
   "valueSchema": {
     "type": "object",
     "properties": {
@@ -39,6 +39,9 @@
       },
       "design_rate_rampdown": {
         "type": "number"
+      },
+      "context_anchor": {
+        "type": "number"
       }
     },
     "required": []
@@ -55,12 +58,17 @@
       "concentration_feature": {
         "type": "string",
         "default": "denso"
+      },
+      "context_minutes": {
+        "type": "number",
+        "default": 0
       }
     },
     "required": [
       "well_name",
       "stage_num",
-      "concentration_feature"
+      "concentration_feature",
+      "context_minutes"
     ]
   }
 }

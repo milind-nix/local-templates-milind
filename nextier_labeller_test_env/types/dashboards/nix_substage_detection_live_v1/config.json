@@ -1,10 +1,10 @@
 {
   "key": "nix_substage_detection_live_v1",
-  "displayName": "Nix Substage Detection Dashboard (Beta) 2",
+  "displayName": "Substage Detection Dashboard",
   "description": "Merged-data v2 substage detection dashboard for Platinum and Gold model labels.",
   "order": 3,
   "config": {
-    "updateInterval": "5s",
+    "updateInterval": "5m",
     "specVersion": "v2"
   },
   "paramsSchema": {
@@ -41,13 +41,17 @@
           "type": "number",
           "default": null
         },
+        "context_minutes": {
+          "type": "number",
+          "default": 0
+        },
         "chart_mode": {
           "type": "string",
           "default": "line"
         },
         "concentration_feature": {
           "type": "string",
-          "default": "denso"
+          "default": "auger"
         }
       }
     },
@@ -151,10 +155,24 @@
                       }
                     }
                   },
+                  "context_minutes": {
+                    "type": "number",
+                    "default": 0,
+                    "metadata": {
+                      "ui": {
+                        "label": "Context (min)",
+                        "component": "number",
+                        "placeholder": "0"
+                      }
+                    }
+                  },
                   "model": {
                     "type": "string",
                     "default": "platinum",
-                    "enum": ["platinum", "gold"],
+                    "enum": [
+                      "platinum",
+                      "gold"
+                    ],
                     "metadata": {
                       "ui": {
                         "label": "Model",
@@ -175,7 +193,10 @@
                   "chart_mode": {
                     "type": "string",
                     "default": "line",
-                    "enum": ["line", "scatter"],
+                    "enum": [
+                      "line",
+                      "scatter"
+                    ],
                     "metadata": {
                       "ui": {
                         "label": "Mode",
@@ -195,8 +216,13 @@
                   },
                   "concentration_feature": {
                     "type": "string",
-                    "default": "denso",
-                    "enum": ["denso", "inline", "target", "auger"],
+                    "default": "auger",
+                    "enum": [
+                      "denso",
+                      "inline",
+                      "target",
+                      "auger"
+                    ],
                     "metadata": {
                       "ui": {
                         "label": "Choose Concentration type",
@@ -224,7 +250,12 @@
                     }
                   }
                 },
-                "required": ["well_name", "stage_num", "model", "chart_mode"],
+                "required": [
+                  "well_name",
+                  "stage_num",
+                  "model",
+                  "chart_mode"
+                ],
                 "additionalProperties": false
               },
               "formData": {
@@ -232,6 +263,7 @@
                 "pad_name": "{{state.pad_name}}",
                 "well_name": "{{state.well_name}}",
                 "stage_num": "{{state.stage_num}}",
+                "context_minutes": "{{state.context_minutes}}",
                 "model": "{{state.model}}",
                 "chart_mode": "{{state.chart_mode}}",
                 "concentration_feature": "{{state.concentration_feature}}"
@@ -267,25 +299,35 @@
                       {
                         "type": "field",
                         "key": "stage_num",
-                        "colSpan": 3,
+                        "colSpan": 4,
+                        "minH": 48
+                      },
+                      {
+                        "type": "field",
+                        "key": "context_minutes",
+                        "colSpan": 4,
                         "minH": 48
                       },
                       {
                         "type": "field",
                         "key": "model",
-                        "colSpan": 3,
+                        "colSpan": 4,
                         "minH": 48
-                      },
+                      }
+                    ]
+                  },
+                  {
+                    "items": [
                       {
                         "type": "field",
                         "key": "chart_mode",
-                        "colSpan": 3,
+                        "colSpan": 6,
                         "minH": 48
                       },
                       {
                         "type": "field",
                         "key": "concentration_feature",
-                        "colSpan": 3,
+                        "colSpan": 6,
                         "minH": 48
                       }
                     ]
@@ -335,6 +377,7 @@
                 "pad_name": null,
                 "well_name": null,
                 "stage_num": null,
+                "context_minutes": "{{form.context_minutes}}",
                 "model": "{{form.model}}",
                 "chart_mode": "{{form.chart_mode}}",
                 "concentration_feature": "{{form.concentration_feature}}"
@@ -349,6 +392,7 @@
                 "pad_name": "{{form.pad_name}}",
                 "well_name": null,
                 "stage_num": null,
+                "context_minutes": "{{form.context_minutes}}",
                 "model": "{{form.model}}",
                 "chart_mode": "{{form.chart_mode}}",
                 "concentration_feature": "{{form.concentration_feature}}"
@@ -363,6 +407,7 @@
                 "pad_name": "{{form.pad_name}}",
                 "well_name": "{{form.well_name}}",
                 "stage_num": null,
+                "context_minutes": "{{form.context_minutes}}",
                 "model": "{{form.model}}",
                 "chart_mode": "{{form.chart_mode}}",
                 "concentration_feature": "{{form.concentration_feature}}"
@@ -377,6 +422,7 @@
                 "pad_name": "{{form.pad_name}}",
                 "well_name": "{{form.well_name}}",
                 "stage_num": "{{form.stage_num}}",
+                "context_minutes": "{{form.context_minutes}}",
                 "model": "{{form.model}}",
                 "chart_mode": "{{form.chart_mode}}",
                 "concentration_feature": "{{form.concentration_feature}}"
@@ -391,6 +437,7 @@
                 "pad_name": "{{form.pad_name}}",
                 "well_name": "{{form.well_name}}",
                 "stage_num": "{{form.stage_num}}",
+                "context_minutes": "{{form.context_minutes}}",
                 "model": "{{form.model}}",
                 "chart_mode": "{{form.chart_mode}}",
                 "concentration_feature": "{{form.concentration_feature}}"
@@ -406,6 +453,7 @@
         "isDataLarge": true,
         "chrome": {
           "showActions": false,
+          "disableCard": false,
           "padding": {
             "top": 8,
             "right": 8,
@@ -417,14 +465,20 @@
           "chart_data": {
             "source": "metric",
             "metricKey": "merged_detection_platinum_timeseries_v1",
-            "fieldName": "ts,rate_slurry,press_mainline,selected_concentration,inferred_pressure,design_rate,design_rate_high,design_rate_rampdown,substage_label",
+            "fieldName": "ts,rate_slurry,press_mainline,selected_concentration,inferred_pressure,design_rate,design_rate_high,design_rate_rampdown,substage_label,context_anchor",
             "bindings": {
               "query": {
                 "well_name": "well_name",
                 "stage_num": "stage_num",
-                "concentration_feature": "concentration_feature"
+                "concentration_feature": "concentration_feature",
+                "context_minutes": "context_minutes"
               },
-              "required": ["well_name", "stage_num", "concentration_feature"]
+              "required": [
+                "well_name",
+                "stage_num",
+                "concentration_feature",
+                "context_minutes"
+              ]
             }
           },
           "stage_windows": {
@@ -436,7 +490,10 @@
                 "well_name": "well_name",
                 "stage_num": "stage_num"
               },
-              "required": ["well_name", "stage_num"]
+              "required": [
+                "well_name",
+                "stage_num"
+              ]
             }
           }
         },
@@ -577,6 +634,19 @@
                     "nameTextStyle": {
                       "fontSize": 16
                     }
+                  },
+                  {
+                    "type": "value",
+                    "id": "Y_context_extent",
+                    "show": false,
+                    "min": 0,
+                    "max": 1,
+                    "splitLine": {
+                      "show": false
+                    },
+                    "axisLabel": {
+                      "fontSize": 14
+                    }
                   }
                 ],
                 "tooltip": {
@@ -700,7 +770,8 @@
                       "chart_data.design_rate",
                       "chart_data.design_rate_high",
                       "chart_data.design_rate_rampdown",
-                      "chart_data.substage_label"
+                      "chart_data.substage_label",
+                      "chart_data.context_anchor"
                     ]
                   }
                 ],
@@ -1005,6 +1076,28 @@
                     "itemStyle": {
                       "color": "#4AA8B5"
                     }
+                  },
+                  {
+                    "name": "__context_extent__",
+                    "type": "scatter",
+                    "encode": {
+                      "x": "chart_data.ts",
+                      "y": "chart_data.context_anchor"
+                    },
+                    "xAxisId": "X",
+                    "yAxisId": "Y_context_extent",
+                    "datasetIndex": 0,
+                    "symbolSize": 0,
+                    "silent": true,
+                    "tooltip": {
+                      "show": false
+                    },
+                    "itemStyle": {
+                      "opacity": 0
+                    },
+                    "emphasis": {
+                      "disabled": true
+                    }
                   }
                 ],
                 "legend": {
@@ -1063,6 +1156,36 @@
                     "Shut Off",
                     "Stage End"
                   ]
+                },
+                "toolbox": {
+                  "show": true,
+                  "top": 44,
+                  "right": 16,
+                  "itemSize": 16,
+                  "itemGap": 10,
+                  "iconStyle": {
+                    "borderColor": "rgba(148, 163, 184, 0.95)"
+                  },
+                  "emphasis": {
+                    "iconStyle": {
+                      "borderColor": "#14B8A6"
+                    }
+                  },
+                  "feature": {
+                    "dataZoom": {
+                      "title": {
+                        "zoom": "Box Zoom",
+                        "back": "Zoom Back"
+                      },
+                      "xAxisIndex": [
+                        0
+                      ],
+                      "yAxisIndex": false
+                    },
+                    "restore": {
+                      "title": "Reset Zoom"
+                    }
+                  }
                 }
               }
             }
@@ -1076,6 +1199,7 @@
         "isDataLarge": true,
         "chrome": {
           "showActions": false,
+          "disableCard": false,
           "padding": {
             "top": 8,
             "right": 8,
@@ -1087,14 +1211,20 @@
           "chart_data": {
             "source": "metric",
             "metricKey": "merged_detection_platinum_timeseries_v1",
-            "fieldName": "ts,rate_slurry,press_mainline,selected_concentration,inferred_pressure,design_rate,design_rate_high,design_rate_rampdown,substage_label",
+            "fieldName": "ts,rate_slurry,press_mainline,selected_concentration,inferred_pressure,design_rate,design_rate_high,design_rate_rampdown,substage_label,context_anchor",
             "bindings": {
               "query": {
                 "well_name": "well_name",
                 "stage_num": "stage_num",
-                "concentration_feature": "concentration_feature"
+                "concentration_feature": "concentration_feature",
+                "context_minutes": "context_minutes"
               },
-              "required": ["well_name", "stage_num", "concentration_feature"]
+              "required": [
+                "well_name",
+                "stage_num",
+                "concentration_feature",
+                "context_minutes"
+              ]
             }
           },
           "stage_windows": {
@@ -1106,7 +1236,10 @@
                 "well_name": "well_name",
                 "stage_num": "stage_num"
               },
-              "required": ["well_name", "stage_num"]
+              "required": [
+                "well_name",
+                "stage_num"
+              ]
             }
           }
         },
@@ -1247,6 +1380,19 @@
                     "nameTextStyle": {
                       "fontSize": 16
                     }
+                  },
+                  {
+                    "type": "value",
+                    "id": "Y_context_extent",
+                    "show": false,
+                    "min": 0,
+                    "max": 1,
+                    "splitLine": {
+                      "show": false
+                    },
+                    "axisLabel": {
+                      "fontSize": 14
+                    }
                   }
                 ],
                 "tooltip": {
@@ -1370,7 +1516,8 @@
                       "chart_data.design_rate",
                       "chart_data.design_rate_high",
                       "chart_data.design_rate_rampdown",
-                      "chart_data.substage_label"
+                      "chart_data.substage_label",
+                      "chart_data.context_anchor"
                     ]
                   }
                 ],
@@ -1672,6 +1819,28 @@
                     "itemStyle": {
                       "color": "#4AA8B5"
                     }
+                  },
+                  {
+                    "name": "__context_extent__",
+                    "type": "scatter",
+                    "encode": {
+                      "x": "chart_data.ts",
+                      "y": "chart_data.context_anchor"
+                    },
+                    "xAxisId": "X",
+                    "yAxisId": "Y_context_extent",
+                    "datasetIndex": 0,
+                    "symbolSize": 0,
+                    "silent": true,
+                    "tooltip": {
+                      "show": false
+                    },
+                    "itemStyle": {
+                      "opacity": 0
+                    },
+                    "emphasis": {
+                      "disabled": true
+                    }
                   }
                 ],
                 "legend": {
@@ -1715,6 +1884,36 @@
                     "Shut Off",
                     "Stage End"
                   ]
+                },
+                "toolbox": {
+                  "show": true,
+                  "top": 44,
+                  "right": 16,
+                  "itemSize": 16,
+                  "itemGap": 10,
+                  "iconStyle": {
+                    "borderColor": "rgba(148, 163, 184, 0.95)"
+                  },
+                  "emphasis": {
+                    "iconStyle": {
+                      "borderColor": "#14B8A6"
+                    }
+                  },
+                  "feature": {
+                    "dataZoom": {
+                      "title": {
+                        "zoom": "Box Zoom",
+                        "back": "Zoom Back"
+                      },
+                      "xAxisIndex": [
+                        0
+                      ],
+                      "yAxisIndex": false
+                    },
+                    "restore": {
+                      "title": "Reset Zoom"
+                    }
+                  }
                 }
               }
             }
@@ -1728,6 +1927,7 @@
         "isDataLarge": true,
         "chrome": {
           "showActions": false,
+          "disableCard": false,
           "padding": {
             "top": 8,
             "right": 8,
@@ -1739,14 +1939,20 @@
           "chart_data": {
             "source": "metric",
             "metricKey": "merged_detection_gold_timeseries_v1",
-            "fieldName": "ts,rate_slurry,press_mainline,selected_concentration,inferred_pressure,design_rate,design_rate_high,design_rate_rampdown,substage_label",
+            "fieldName": "ts,rate_slurry,press_mainline,selected_concentration,inferred_pressure,design_rate,design_rate_high,design_rate_rampdown,substage_label,context_anchor",
             "bindings": {
               "query": {
                 "well_name": "well_name",
                 "stage_num": "stage_num",
-                "concentration_feature": "concentration_feature"
+                "concentration_feature": "concentration_feature",
+                "context_minutes": "context_minutes"
               },
-              "required": ["well_name", "stage_num", "concentration_feature"]
+              "required": [
+                "well_name",
+                "stage_num",
+                "concentration_feature",
+                "context_minutes"
+              ]
             }
           },
           "stage_windows": {
@@ -1758,7 +1964,10 @@
                 "well_name": "well_name",
                 "stage_num": "stage_num"
               },
-              "required": ["well_name", "stage_num"]
+              "required": [
+                "well_name",
+                "stage_num"
+              ]
             }
           }
         },
@@ -1899,6 +2108,19 @@
                     "nameTextStyle": {
                       "fontSize": 16
                     }
+                  },
+                  {
+                    "type": "value",
+                    "id": "Y_context_extent",
+                    "show": false,
+                    "min": 0,
+                    "max": 1,
+                    "splitLine": {
+                      "show": false
+                    },
+                    "axisLabel": {
+                      "fontSize": 14
+                    }
                   }
                 ],
                 "tooltip": {
@@ -2022,7 +2244,8 @@
                       "chart_data.design_rate",
                       "chart_data.design_rate_high",
                       "chart_data.design_rate_rampdown",
-                      "chart_data.substage_label"
+                      "chart_data.substage_label",
+                      "chart_data.context_anchor"
                     ]
                   }
                 ],
@@ -2167,6 +2390,28 @@
                     "itemStyle": {
                       "color": "#4B9F63"
                     }
+                  },
+                  {
+                    "name": "__context_extent__",
+                    "type": "scatter",
+                    "encode": {
+                      "x": "chart_data.ts",
+                      "y": "chart_data.context_anchor"
+                    },
+                    "xAxisId": "X",
+                    "yAxisId": "Y_context_extent",
+                    "datasetIndex": 0,
+                    "symbolSize": 0,
+                    "silent": true,
+                    "tooltip": {
+                      "show": false
+                    },
+                    "itemStyle": {
+                      "opacity": 0
+                    },
+                    "emphasis": {
+                      "disabled": true
+                    }
                   }
                 ],
                 "legend": {
@@ -2198,6 +2443,36 @@
                     "Prop",
                     "Flush"
                   ]
+                },
+                "toolbox": {
+                  "show": true,
+                  "top": 44,
+                  "right": 16,
+                  "itemSize": 16,
+                  "itemGap": 10,
+                  "iconStyle": {
+                    "borderColor": "rgba(148, 163, 184, 0.95)"
+                  },
+                  "emphasis": {
+                    "iconStyle": {
+                      "borderColor": "#14B8A6"
+                    }
+                  },
+                  "feature": {
+                    "dataZoom": {
+                      "title": {
+                        "zoom": "Box Zoom",
+                        "back": "Zoom Back"
+                      },
+                      "xAxisIndex": [
+                        0
+                      ],
+                      "yAxisIndex": false
+                    },
+                    "restore": {
+                      "title": "Reset Zoom"
+                    }
+                  }
                 }
               }
             }
@@ -2211,6 +2486,7 @@
         "isDataLarge": true,
         "chrome": {
           "showActions": false,
+          "disableCard": false,
           "padding": {
             "top": 8,
             "right": 8,
@@ -2222,14 +2498,20 @@
           "chart_data": {
             "source": "metric",
             "metricKey": "merged_detection_gold_timeseries_v1",
-            "fieldName": "ts,rate_slurry,press_mainline,selected_concentration,inferred_pressure,design_rate,design_rate_high,design_rate_rampdown,substage_label",
+            "fieldName": "ts,rate_slurry,press_mainline,selected_concentration,inferred_pressure,design_rate,design_rate_high,design_rate_rampdown,substage_label,context_anchor",
             "bindings": {
               "query": {
                 "well_name": "well_name",
                 "stage_num": "stage_num",
-                "concentration_feature": "concentration_feature"
+                "concentration_feature": "concentration_feature",
+                "context_minutes": "context_minutes"
               },
-              "required": ["well_name", "stage_num", "concentration_feature"]
+              "required": [
+                "well_name",
+                "stage_num",
+                "concentration_feature",
+                "context_minutes"
+              ]
             }
           },
           "stage_windows": {
@@ -2241,7 +2523,10 @@
                 "well_name": "well_name",
                 "stage_num": "stage_num"
               },
-              "required": ["well_name", "stage_num"]
+              "required": [
+                "well_name",
+                "stage_num"
+              ]
             }
           }
         },
@@ -2382,6 +2667,19 @@
                     "nameTextStyle": {
                       "fontSize": 16
                     }
+                  },
+                  {
+                    "type": "value",
+                    "id": "Y_context_extent",
+                    "show": false,
+                    "min": 0,
+                    "max": 1,
+                    "splitLine": {
+                      "show": false
+                    },
+                    "axisLabel": {
+                      "fontSize": 14
+                    }
                   }
                 ],
                 "tooltip": {
@@ -2505,7 +2803,8 @@
                       "chart_data.design_rate",
                       "chart_data.design_rate_high",
                       "chart_data.design_rate_rampdown",
-                      "chart_data.substage_label"
+                      "chart_data.substage_label",
+                      "chart_data.context_anchor"
                     ]
                   }
                 ],
@@ -2647,6 +2946,28 @@
                     "itemStyle": {
                       "color": "#4B9F63"
                     }
+                  },
+                  {
+                    "name": "__context_extent__",
+                    "type": "scatter",
+                    "encode": {
+                      "x": "chart_data.ts",
+                      "y": "chart_data.context_anchor"
+                    },
+                    "xAxisId": "X",
+                    "yAxisId": "Y_context_extent",
+                    "datasetIndex": 0,
+                    "symbolSize": 0,
+                    "silent": true,
+                    "tooltip": {
+                      "show": false
+                    },
+                    "itemStyle": {
+                      "opacity": 0
+                    },
+                    "emphasis": {
+                      "disabled": true
+                    }
                   }
                 ],
                 "legend": {
@@ -2663,6 +2984,36 @@
                     "Prop",
                     "Flush"
                   ]
+                },
+                "toolbox": {
+                  "show": true,
+                  "top": 44,
+                  "right": 16,
+                  "itemSize": 16,
+                  "itemGap": 10,
+                  "iconStyle": {
+                    "borderColor": "rgba(148, 163, 184, 0.95)"
+                  },
+                  "emphasis": {
+                    "iconStyle": {
+                      "borderColor": "#14B8A6"
+                    }
+                  },
+                  "feature": {
+                    "dataZoom": {
+                      "title": {
+                        "zoom": "Box Zoom",
+                        "back": "Zoom Back"
+                      },
+                      "xAxisIndex": [
+                        0
+                      ],
+                      "yAxisIndex": false
+                    },
+                    "restore": {
+                      "title": "Reset Zoom"
+                    }
+                  }
                 }
               }
             }

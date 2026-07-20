@@ -1,0 +1,49 @@
+{
+  "key": "merged_anomaly_tuning_distribution_v1",
+  "displayName": "Merged Anomaly Tuning Distribution",
+  "description": "Distribution of pressure-plus-rate triggers per stage.",
+  "sql": "SELECT * FROM (WITH active_manifest AS (\n  SELECT *\n  FROM featurestore:merged_anomaly_processing_manifest_v2\n  WHERE status = 'active'\n    AND algorithm_version = 'ds-v1'\n    AND fleet_name = :fleet_name\n    AND pad_name = :pad_name\n    AND (\n      COALESCE(CAST(:well_name AS TEXT), '') IN ('', '__ALL__')\n      OR name = CAST(:well_name AS TEXT)\n    )\n),\npressure AS (\n  SELECT t.name, t.stage_num_td, t.segment_count\n  FROM featurestore:merged_anomaly_tuning_counts_v1 t\n  JOIN active_manifest m\n    ON m.name = t.name\n   AND m.stage_num_td = t.stage_num_td\n   AND m.source_signature = t.source_signature\n  WHERE t.algorithm_version = 'tuning-v1'\n    AND t.rolling_points = CAST(:rolling_points AS BIGINT)\n    AND t.threshold_type = 'pressure'\n    AND t.threshold_value = CAST(:pressure_threshold AS DOUBLE PRECISION)\n),\nrate AS (\n  SELECT t.name, t.stage_num_td, t.segment_count\n  FROM featurestore:merged_anomaly_tuning_counts_v1 t\n  JOIN active_manifest m\n    ON m.name = t.name\n   AND m.stage_num_td = t.stage_num_td\n   AND m.source_signature = t.source_signature\n  WHERE t.algorithm_version = 'tuning-v1'\n    AND t.rolling_points = CAST(:rolling_points AS BIGINT)\n    AND t.threshold_type = 'rate'\n    AND t.threshold_value = CAST(:rate_threshold AS DOUBLE PRECISION)\n),\nbaseline AS (\n  SELECT\n    s.name,\n    s.stage_num_td,\n    s.mid_stage_shutdown_lines\n  FROM featurestore:merged_anomaly_stage_summary_v2 s\n  JOIN active_manifest m\n    ON m.active_run_id = s.processing_run_id\n   AND m.name = s.name\n   AND m.stage_num_td = s.stage_num_td\n),\nstage_counts AS (\n  SELECT\n    m.name AS well_name,\n    m.stage_num_td AS stage_num,\n    COALESCE(p.segment_count, 0) AS pressure_surge_segments,\n    COALESCE(r.segment_count, 0) AS pump_rate_drop_segments,\n    COALESCE(b.mid_stage_shutdown_lines, 0) AS mid_stage_shutdown_segments,\n    COALESCE(p.segment_count, 0) + COALESCE(r.segment_count, 0)\n      AS triggered_segments\n  FROM active_manifest m\n  LEFT JOIN pressure p\n    ON p.name = m.name AND p.stage_num_td = m.stage_num_td\n  LEFT JOIN rate r\n    ON r.name = m.name AND r.stage_num_td = m.stage_num_td\n  LEFT JOIN baseline b\n    ON b.name = m.name AND b.stage_num_td = m.stage_num_td\n)\n\nSELECT\n  triggered_segments,\n  COUNT(*) AS stage_count\nFROM stage_counts\nGROUP BY triggered_segments\nORDER BY triggered_segments\n) q",
+  "valueSchema": {
+    "type": "object",
+    "properties": {
+      "triggered_segments": {
+        "type": "number"
+      },
+      "stage_count": {
+        "type": "number"
+      }
+    },
+    "required": []
+  },
+  "paramsSchema": {
+    "type": "object",
+    "properties": {
+      "fleet_name": {
+        "type": "string"
+      },
+      "pad_name": {
+        "type": "string"
+      },
+      "well_name": {
+        "type": "string"
+      },
+      "pressure_threshold": {
+        "type": "number"
+      },
+      "rate_threshold": {
+        "type": "number"
+      },
+      "rolling_points": {
+        "type": "integer"
+      }
+    },
+    "required": [
+      "fleet_name",
+      "pad_name",
+      "well_name",
+      "pressure_threshold",
+      "rate_threshold",
+      "rolling_points"
+    ]
+  }
+}

@@ -1,0 +1,91 @@
+{
+  "key": "nextier_merged_telemetry_rollup",
+  "displayName": "Nextier Merged Telemetry Rollup",
+  "description": "Builds and refreshes configurable time-bucket merged telemetry rollups for fast pad-level dashboards.",
+  "runtime": "prefect",
+  "flow": {
+    "entrypoint": "scripts/workflows/nextier_merged_telemetry_rollup/main.py:nextier_merged_telemetry_rollup_flow",
+    "include": [
+      "scripts/workflows/nextier_merged_telemetry_rollup/**/*.py"
+    ],
+    "tags": [
+      "nextier",
+      "merged-labeller",
+      "telemetry-rollup"
+    ]
+  },
+  "deployment": {
+    "workPool": "default",
+    "timezone": "UTC",
+    "cron": "*/5 * * * *",
+    "concurrencyLimit": 1,
+    "parameters": {
+      "lookback_minutes": 15,
+      "bucket_seconds": 60,
+      "chunk_hours": 24,
+      "max_chunks": 1
+    }
+  },
+  "paramsSchema": {
+    "type": "object",
+    "properties": {
+      "process_historical": {
+        "type": "boolean",
+        "default": false
+      },
+      "start_time": {
+        "type": "string"
+      },
+      "end_time": {
+        "type": "string"
+      },
+      "backfill_start_time": {
+        "type": "string"
+      },
+      "backfill_end_time": {
+        "type": "string"
+      },
+      "reset_backfill_cursor": {
+        "type": "boolean",
+        "default": false
+      },
+      "reset_backfill_checkpoint": {
+        "type": "boolean",
+        "default": false
+      },
+      "lookback_minutes": {
+        "type": "integer",
+        "default": 15,
+        "minimum": 1
+      },
+      "bucket_seconds": {
+        "type": "integer",
+        "default": 60,
+        "minimum": 1
+      },
+      "chunk_hours": {
+        "type": "integer",
+        "default": 24,
+        "minimum": 1
+      },
+      "max_chunks": {
+        "type": "integer",
+        "default": 1,
+        "minimum": 1
+      },
+      "fleet_name": {
+        "type": "string"
+      },
+      "pad_name": {
+        "type": "string"
+      },
+      "well_name": {
+        "type": "string"
+      }
+    },
+    "required": []
+  },
+  "initialState": {
+    "__checkpoint__merged_telemetry_rollup_end_ts": null
+  }
+}

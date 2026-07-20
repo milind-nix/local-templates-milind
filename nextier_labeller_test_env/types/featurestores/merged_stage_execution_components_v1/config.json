@@ -1,0 +1,49 @@
+{
+  "key": "merged_stage_execution_components_v1",
+  "displayName": "Merged Stage Execution Components v1",
+  "description": "Current DS-canonical raw Stage Execution Quality components and source checkpoint per stage.",
+  "sql": "SELECT CAST(NULL AS TEXT) AS fleet_name, CAST(NULL AS TEXT) AS pad_name, CAST(NULL AS TEXT) AS name, CAST(NULL AS DOUBLE PRECISION) AS stage_num_td, CAST(NULL AS TEXT) AS formula_version, CAST(NULL AS TEXT) AS source_signature, CAST(NULL AS BIGINT) AS platinum_rows, CAST(NULL AS BIGINT) AS bronze_rows, CAST(NULL AS TEXT) AS anomaly_source_signature, CAST(NULL AS TEXT) AS first_source_ts, CAST(NULL AS TEXT) AS last_source_ts, CAST(NULL AS TEXT) AS latest_source_updated_at, CAST(NULL AS DOUBLE PRECISION) AS anomaly_count, CAST(NULL AS BIGINT) AS substages_present, CAST(NULL AS DOUBLE PRECISION) AS design_seconds, CAST(NULL AS DOUBLE PRECISION) AS design_minutes, CAST(NULL AS DOUBLE PRECISION) AS raw_a, CAST(NULL AS DOUBLE PRECISION) AS raw_b, CAST(NULL AS DOUBLE PRECISION) AS raw_c, CAST(NULL AS DOUBLE PRECISION) AS cv_rate, CAST(NULL AS DOUBLE PRECISION) AS cv_press, CAST(NULL AS DOUBLE PRECISION) AS longest_run_frac, CAST(NULL AS DOUBLE PRECISION) AS dip_rate_d, CAST(NULL AS DOUBLE PRECISION) AS design_rate_d, CAST(NULL AS TEXT) AS processing_run_id, CAST(NULL AS TEXT) AS computed_at FROM datastore:merged_fleet_stream_customer_full_v2 WHERE 1 = 0",
+  "checkpoint_fields": [],
+  "upsert": true,
+  "dataSchema": {
+    "type": "object",
+    "properties": {
+      "fleet_name": {"type": "string"},
+      "pad_name": {"type": "string"},
+      "name": {"type": "string", "metadata": {"isPrimaryKey": true}},
+      "stage_num_td": {"type": "number", "metadata": {"isPrimaryKey": true}},
+      "formula_version": {"type": "string", "metadata": {"isPrimaryKey": true}},
+      "source_signature": {"type": "string"},
+      "platinum_rows": {"type": "bigint"},
+      "bronze_rows": {"type": "bigint"},
+      "anomaly_source_signature": {"type": "string"},
+      "first_source_ts": {"type": "string", "format": "date-time"},
+      "last_source_ts": {"type": "string", "format": "date-time"},
+      "latest_source_updated_at": {"type": "string", "format": "date-time"},
+      "anomaly_count": {"type": "number"},
+      "substages_present": {"type": "bigint"},
+      "design_seconds": {"type": "number"},
+      "design_minutes": {"type": "number"},
+      "raw_a": {"type": "number"},
+      "raw_b": {"type": "number"},
+      "raw_c": {"type": "number"},
+      "cv_rate": {"type": "number"},
+      "cv_press": {"type": "number"},
+      "longest_run_frac": {"type": "number"},
+      "dip_rate_d": {"type": "number"},
+      "design_rate_d": {"type": "number"},
+      "processing_run_id": {"type": "string"},
+      "computed_at": {"type": "string", "format": "date-time"}
+    },
+    "required": [
+      "fleet_name",
+      "pad_name",
+      "name",
+      "stage_num_td",
+      "formula_version",
+      "source_signature",
+      "processing_run_id",
+      "computed_at"
+    ]
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "key": "merged_anomaly_tuning_stage_deltas_v1",
+  "displayName": "Merged Anomaly Tuning Stage Deltas",
+  "description": "On-demand canonical pressure/rate delta traces for one well and stage.",
+  "valueSchema": {
+    "type": "object",
+    "properties": {
+      "timestamp": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "delta_pressure": {
+        "type": "number"
+      },
+      "delta_rate": {
+        "type": "number"
+      },
+      "pressure_trigger": {
+        "type": "number"
+      },
+      "rate_trigger": {
+        "type": "number"
+      },
+      "pressure_threshold": {
+        "type": "number"
+      },
+      "negative_rate_threshold": {
+        "type": "number"
+      }
+    },
+    "required": []
+  },
+  "paramsSchema": {
+    "type": "object",
+    "properties": {
+      "well_name": {
+        "type": "string"
+      },
+      "stage_num": {
+        "type": "string"
+      },
+      "pressure_threshold": {
+        "type": "number"
+      },
+      "rate_threshold": {
+        "type": "number"
+      },
+      "rolling_points": {
+        "type": "integer"
+      }
+    },
+    "required": [
+      "well_name",
+      "stage_num",
+      "pressure_threshold",
+      "rate_threshold",
+      "rolling_points"
+    ]
+  }
+}

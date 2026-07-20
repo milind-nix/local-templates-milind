@@ -1,0 +1,70 @@
+{
+  "key": "merged_presence_stage_rows_v1",
+  "displayName": "Merged Platinum Presence by Stage",
+  "description": "One row per TD stage with normalized Platinum substage presence.",
+  "sql": "SELECT * FROM (WITH scoped_wells AS (\n  SELECT DISTINCT name\n  FROM featurestore:merged_well_index_v1\n  WHERE COALESCE(NULLIF(fleet_name, ''), 'Unknown') = :fleet_name\n    AND COALESCE(NULLIF(pad_name, ''), 'Unknown') = :pad_name\n    AND (CAST(:well_name AS TEXT) IN ('', '__ALL__') OR name = :well_name)\n),\nlabel_presence AS (\n  SELECT\n    p.name AS well_name,\n    p.stage_num_td AS stage_num,\n    MAX(CASE WHEN LOWER(p.substage) = 'stage_start' THEN 1 ELSE 0 END) AS stage_start,\n    MAX(CASE WHEN LOWER(p.substage) = 'ramp_up' THEN 1 ELSE 0 END) AS ramp_up,\n    MAX(CASE WHEN LOWER(p.substage) IN ('design', 'slurry') THEN 1 ELSE 0 END) AS design,\n    MAX(CASE WHEN LOWER(p.substage) = 'ramp_down' THEN 1 ELSE 0 END) AS ramp_down,\n    MAX(CASE WHEN LOWER(p.substage) IN ('shut_off', 'shutoff', 'shut_off_period') THEN 1 ELSE 0 END) AS shut_off,\n    MAX(CASE WHEN LOWER(p.substage) = 'stage_end' THEN 1 ELSE 0 END) AS stage_end\n  FROM featurestore:merged_platinum_labels_v1 p\n  JOIN scoped_wells w ON w.name = p.name\n  WHERE p.stage_num_td IS NOT NULL\n    AND p.substage IS NOT NULL\n    AND LOWER(p.substage) <> 'na'\n  GROUP BY p.name, p.stage_num_td\n),\npresence AS (\n  SELECT\n    well_name,\n    stage_num,\n    stage_start,\n    ramp_up,\n    design,\n    ramp_down,\n    shut_off,\n    stage_end\n  FROM label_presence\n),\nscored AS (\n  SELECT\n    *,\n    stage_start + ramp_up + design + ramp_down + stage_end AS present_required,\n    5 - (stage_start + ramp_up + design + ramp_down + stage_end) AS missing_count\n  FROM presence\n)\nSELECT\n  well_name,\n  stage_num,\n  CASE\n    WHEN CAST(:well_name AS TEXT) IN ('', '__ALL__')\n      THEN well_name || ' \u00b7 ' || CAST(stage_num AS TEXT)\n    ELSE CAST(stage_num AS TEXT)\n  END AS stage_label,\n  stage_start,\n  ramp_up,\n  design,\n  ramp_down,\n  shut_off,\n  stage_end,\n  ROUND((present_required * 100.0 / 5.0)::numeric, 1) AS coverage_percent,\n  missing_count,\n  CASE WHEN missing_count = 0 THEN 1 ELSE 0 END AS complete_stage,\n  CONCAT_WS(', ',\n    CASE WHEN stage_start = 0 THEN 'Stage Start' END,\n    CASE WHEN ramp_up = 0 THEN 'Ramp Up' END,\n    CASE WHEN design = 0 THEN 'Design' END,\n    CASE WHEN ramp_down = 0 THEN 'Ramp Down' END,\n    CASE WHEN stage_end = 0 THEN 'Stage End' END\n  ) AS missing_substages\nFROM scored\nORDER BY well_name, stage_num\n) q",
+  "valueSchema": {
+    "type": "object",
+    "properties": {
+      "well_name": {
+        "type": "string"
+      },
+      "stage_num": {
+        "type": "number"
+      },
+      "stage_label": {
+        "type": "string"
+      },
+      "stage_start": {
+        "type": "number"
+      },
+      "ramp_up": {
+        "type": "number"
+      },
+      "design": {
+        "type": "number"
+      },
+      "ramp_down": {
+        "type": "number"
+      },
+      "shut_off": {
+        "type": "number"
+      },
+      "stage_end": {
+        "type": "number"
+      },
+      "coverage_percent": {
+        "type": "number"
+      },
+      "missing_count": {
+        "type": "number"
+      },
+      "complete_stage": {
+        "type": "number"
+      },
+      "missing_substages": {
+        "type": "string"
+      }
+    },
+    "required": []
+  },
+  "paramsSchema": {
+    "type": "object",
+    "properties": {
+      "fleet_name": {
+        "type": "string"
+      },
+      "pad_name": {
+        "type": "string"
+      },
+      "well_name": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "fleet_name",
+      "pad_name",
+      "well_name"
+    ]
+  }
+}
